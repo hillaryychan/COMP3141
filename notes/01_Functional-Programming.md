@@ -25,8 +25,8 @@ Features of the Haskell language:
 
 * Immutable data - no/less side-effects
 * Declarative - specifies **what** is to be done instead of **how** to do it
-* Easier to verify - can mathematically prove the correctness of programs
-* Lazy evaluated - it evaluates things as they are needed e.g.  
+* Easy to verify - can mathematically prove the correctness of programs
+* Lazy evaluated - it evaluates things as they are needed e.g.
 
     ``` hs
     func arg =
@@ -86,11 +86,15 @@ double x = x * 2
 quadruple :: Int -> Int
 quadruple = twice double
 
--- twice twice double 3 produces 48
--- (twice twice double) 3
--- (twice (twice double)) 3
--- (twice quadruple) 3
+{- twice twice double 3 = 48
+   (twice twice double) 3  - Equation 1
+   (twice (twice double)) 3
+   (twice quadruple) 3 - defn. of quadruple
+   quadruple (quadruple 3) - Equation 1
+-}
 ```
+
+See [built-in higher order functions](#built-in-higher-order-functions) for more examples
 
 ### Strings
 
@@ -191,11 +195,11 @@ f . g = f (g x)
 -- f . g equiv. to (\x -> f (g x))
 ```
 
-### Native Higher Order Functions
+### Built-in Higher Order Functions
 
 Various list functions that are built into Haskell's standard library
 
-* `map`
+* `map` - see [map](#map)
 * `filter`
 * `concat`
 * `sum`
@@ -204,28 +208,76 @@ Various list functions that are built into Haskell's standard library
 
 ### Miscellaneous Syntax
 
-#### `let`
+#### `let ... in ...`
+
+``` hs
+toCartesian :: (Double, Double) -> (Double, Double)
+toCartesian = \(r, theta) -> let
+                               y = r * sin theta
+                               x = r * cos theta
+                             in (x, y)
+```
 
 #### `case`
 
-#### `if`
+``` hs
+case exp of
+     Pattern1  -> action1
+     Pattern2  -> action2
+     _         -> else_action
+```
 
-#### Guards
+Example:
 
 ``` hs
+hello :: Pet -> String
+hello x =
+  case x of
+    Cat -> "meeow"
+    Dog -> "woof"
+    Fish -> "bubble"
+```
+
+#### `if`
+
+The syntax for `if` expressions is:
+
+``` hs
+if <condition> then <true-value> else <false-value>
+```
+
+Example:
+
+``` hs
+fac :: Int -> Int
 fac n =
   if n <= 1 then
     1
   else
     n * fac (n-1)
-
-fac c
-| n <= 1    = 1
-| otherwise = n * fac (n-1)
-
-Guards need boolean expressions
-otherwise is a constant that always evaluates to True
 ```
+
+#### Guards
+
+Guards are a way of testing whether some property of a value (or several of them) are true or false. Syntax for guards:
+
+``` hs
+f x
+  | predicate1 = expression1
+  | predicate2 = expression2
+  | predicate3 = expression3
+```
+
+Example:
+
+``` hs
+fac :: Int -> Int
+fac c
+ | n <= 1    = 1
+ | otherwise = n * fac (n-1)
+```
+
+`otherwise` is a constant that always evaluates to `True`
 
 #### Dollar Sign
 

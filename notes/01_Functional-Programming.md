@@ -15,7 +15,7 @@ In this course we will use mathematics to guide the development of software
 ## Haskell
 
 Haskell is a language with good support for mathematically structured programming.  
-It simply takes in an input and produces a result.
+Like mathematical  functions, all functions in Haskell ***accept one argument and produce one result***
 
 ![Haskell structure](../imgs/01-15_haskell-structure.png)
 
@@ -199,12 +199,69 @@ f . g = f (g x)
 
 Various list functions that are built into Haskell's standard library
 
-* `map` - see [map](#map)
-* `filter`
-* `concat`
-* `sum`
-* `foldr`
+* `map` - see [map](#map). Given a function and list, apply the function to every element in the list
+
+    ``` hs
+    map :: (a -> b) -> [a] -> [b]
+    map f []     = []
+    map f (x:xs) = f x : map f xs
+    ```
+
+* `filter` - filters out a list given a predicate/condition. It returns a list that satisfies the predicate
+
+    ``` hs
+    filter :: (a -> Bool) -> [a] -> [a]
+    filter p [] = []
+    filter p xs = if p x then x : filter p xs
+                         else p xs
+    ```
+
+* `concat` - concatenate a list of lists
+
+    ``` hs
+    concat :: [[a]] -> [a]
+    concat []       = []
+    concat (xs:xss) = xs ++ concat xss
+
+    concat ["hello","world","!"] ≡ "hello":"world":"!":[]
+                                 ≡ "hello"++"world"++"!"++[]
+                                 ≡ "helloworld!"
+    ```
+
+* `sum` - sum a elements of a list
+
+    ``` hs
+    sum :: [Int] -> Int
+    sum []     = 0
+    sum (x:xs) = x + sum xs
+    ```
+
+* `foldr` given a binary operator, a starting value (typically the right-identity of the operator), and a list, it reduces the list using the binary operator from right to left.
+
+    ``` hs
+    foldr :: (a -> b -> b) -> b -> [a] -> b
+    -- foldr (\elem  acc -> <term>) <start acc> <list>
+    foldr f z [] = z
+    foldr f z (x:xs) = x f (foldr f z xs)
+    ```
+
+    This can be used to implement already existing list functions. Example:
+
+    ``` hs
+    sum = foldr (+) 0
+    and = foldr (&&) True
+    or  = foldr (||) False
+    concat = foldr (++) []
+    ```
+
 * `foldl`
+
+    ``` hs
+    foldr :: (a -> b -> b) -> b -> [a] -> b
+    -- foldl (\acc elem -> <term>) <start acc> <list>
+    foldr f z [] = z
+    foldr f z (x:xs) = foldr f (f x z) xs
+    ```
 
 ### Miscellaneous Syntax
 
@@ -289,4 +346,10 @@ The `$` operator is an infix operator, which given a `a -> b` function and an `a
 -- the following are equivalent
 f xs = map (\x -> x+1) (filter (\x -> x>1) xs)
 f xs = map (\x -> x+1) $ filter (\x -> x>1) xs
+```
+
+It gives low, **right-associative** precedence
+
+``` hs
+f $ g $ h x  =  f (g (h x))
 ```

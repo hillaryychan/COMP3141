@@ -193,7 +193,7 @@ You could even have defined function composition yourself if it didn't already e
 
 ``` hs
 (.) :: (b -> c) -> (a -> b) -> (a -> c)
-f . g = f (g x)
+(f . g) x = f (g x)
 -- f . g equiv. to (\x -> f (g x))
 ```
 
@@ -348,6 +348,8 @@ The `$` operator is an infix operator, which given a `a -> b` function and an `a
 -- the following are equivalent
 f xs = map (\x -> x+1) (filter (\x -> x>1) xs)
 f xs = map (\x -> x+1) $ filter (\x -> x>1) xs
+
+f $ g = f (g x) = (f . g) x
 ```
 
 It gives low, **right-associative** precedence

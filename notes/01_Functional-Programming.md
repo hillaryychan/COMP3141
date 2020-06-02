@@ -38,6 +38,8 @@ Features of the Haskell language:
 
 ### Currying
 
+**Currying** is a technique of transforming a function that takes multiple arguments in a tuple as its argument (i.e `f :: a -> b -> c` in curried form is `g :: (a, b) -> c`) into a function that takes just a single argument and returns another function which accepts further arguments, one by one, that the original function would receive in the rest of that tuple
+
 In mathematics, we treat log10(x) and log2(x) and ln(x) as separate functions  
 In Haskell, we have a single `logBase` that, given a number *n*, produces a function for logn(x)
 

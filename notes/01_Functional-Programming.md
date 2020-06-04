@@ -6,11 +6,18 @@ Software must be developed **cheaply and quickly**
 
 We have **safety-uncritical** applications like video games, where it is acceptable to have bugs in order to save developer effort.
 
-We also have **safety-critical** applications; e.g. planes, self-driving cars, radiation therapy machines etc.
+We also have **safety-critical** applications; e.g. planes, self-driving cars, radiation therapy machines etc. A bug in the code controlling the Therac-25 radiation therapy machine was directly responsible for at least five patient deaths in the 1980s when it administered excessive quantities of beta radiation.
 
 In this course we will use mathematics to guide the development of software
 
 ![overview](../imgs/01-9_overview.jpg)
+
+Why functional programming and how does it help?
+
+1. **Close to Maths**: more abstract, less error-prone
+2. **Types**: act as doc., the compiler eliminates many errors
+3. **Property-based Testing**: QuickCheck (see [here](TODO))
+4. **Verification**: equational reasoning eases proofs (see [here](TODO))
 
 ## Haskell
 
@@ -24,7 +31,7 @@ In mathematics, we would apply a function by writing *f(x)*. In Haskell we write
 Features of the Haskell language:
 
 * Immutable data - no/less side-effects
-* Declarative - specifies **what** is to be done instead of **how** to do it
+* Declarative/Functional - specifies **what** is to be done instead of **how** to do it
 * Easy to verify - can mathematically prove the correctness of programs
 * Lazy evaluated - it evaluates things as they are needed e.g.
 
@@ -38,7 +45,7 @@ Features of the Haskell language:
 
 ### Currying
 
-**Currying** is a technique of transforming a function that takes multiple arguments in a tuple as its argument (i.e `f :: a -> b -> c` in curried form is `g :: (a, b) -> c`) into a function that takes just a single argument and returns another function which accepts further arguments, one by one, that the original function would receive in the rest of that tuple
+**Currying** is a technique of transforming a function that takes multiple arguments in a tuple as its argument (i.e `f :: a -> b -> c` in curried form is `g :: (a, b) -> c`) into a function that takes just a **single argument** and returns another function which accepts further arguments, one by one, that the original function would receive in the rest of that tuple
 
 In mathematics, we treat log10(x) and log2(x) and ln(x) as separate functions  
 In Haskell, we have a single `logBase` that, given a number *n*, produces a function for logn(x)
@@ -57,7 +64,36 @@ ln = logBase 2.71828
 The type of `logBase` is `logBase :: Double -> (Double -> Double)`, where parentheses are optional.
 
 Function application associates to the **left** in Haskell, so  
-logBase 2 64 ≡ (logBase 2) 64
+logBase 2 64 ≡ (logBase 2) 64  
+
+Consider a function with many arguments:
+
+``` hs
+f x1 x2 ... xn = y
+-- where each xi is of type Int, y is of type Bool
+-- The type of f is
+f :: Int -> (Int -> ( ... (Int -> Bool)))
+-- Correspondingly, we should write
+(... ((f x1) x2) ...) xn = y
+```
+
+Haskell is aware of this and applies implicit bracketing from
+
+* the right-to-left for function type declarations
+
+    ``` hs
+    f :: Int -> Int -> ... -> Int -> Bool
+    -- means
+    f :: Int -> (Int -> ( ... -> (Int -> Bool)))
+    ```
+
+* the left-to-right for function application
+
+    ``` hs
+    f x1 x2 ... xn
+    -- means
+    (... ((f x1) x2) ...) xn
+    ```
 
 Functions of more than one argument are usually written this way in Haskell, but it is possible to use **tuples** instead
 
@@ -243,8 +279,8 @@ Various list functions that are built into Haskell's standard library
     ``` hs
     foldr :: (a -> b -> b) -> b -> [a] -> b
     -- foldr (\elem  acc -> <term>) <start acc> <list>
-    foldr f z [] = z
-    foldr f z (x:xs) = x f (foldr f z xs)
+    foldr f acc [] = z
+    foldr f acc (x:xs) = x f (foldr f acc xs)
     ```
 
     This can be used to implement already existing list functions. Example:
@@ -259,13 +295,32 @@ Various list functions that are built into Haskell's standard library
 * `foldl`
 
     ``` hs
-    foldr :: (a -> b -> b) -> b -> [a] -> b
+    foldl :: (b -> a -> b) -> b -> [a] -> b
     -- foldl (\acc elem -> <term>) <start acc> <list>
-    foldr f z [] = z
-    foldr f z (x:xs) = foldr f (f x z) xs
+    foldl f acc [] = z
+    foldl f acc (x:xs) = foldl f (f x acc) xs
     ```
 
 ### Miscellaneous Syntax
+
+#### Notation
+
+By default, alphanumerical functions use prefix notation, while non-alphanumerical functions use infix notation
+
+``` hs
+div n 10 -- for n divided by 10
+mod n 10 -- for n modulo 10
+-- vs
+f . g
+f $ g
+```
+
+We can use **infix** notation by writing the function in backticks `` ` ``.
+
+``` hs
+n `div` 10
+n `mod` 10
+```
 
 #### `let ... in ...`
 
@@ -338,6 +393,8 @@ fac c
 
 `otherwise` is a constant that always evaluates to `True`
 
+Guards resemble `switch` statements where they fall through to the condition they satisfy then exit the statement.
+
 #### Dollar Sign
 
 The `$` operator is an infix operator, which given a `a -> b` function and an `a` to apply it to, it gives us b.
@@ -357,3 +414,10 @@ It gives low, **right-associative** precedence
 ``` hs
 f $ g $ h x  =  f (g (h x))
 ```
+
+`:t` determine type of var. e.g. `:t True` gives `True :: Bool`
+
+#### Others
+
+* `!!` is an indexing operator
+* `/=` is the not-equal operator

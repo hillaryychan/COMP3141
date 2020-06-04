@@ -421,3 +421,10 @@ f $ g $ h x  =  f (g (h x))
 
 * `!!` is an indexing operator
 * `/=` is the not-equal operator
+
+You can find the type of functions on `ghci`/`stack repl` by using `:t`. E.g.
+
+``` hs
+> :t map
+map :: (a -> b) -> [a] -> [b]
+```

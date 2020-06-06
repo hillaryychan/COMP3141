@@ -412,6 +412,12 @@ It gives low, **right-associative** precedence
 f $ g $ h x  =  f (g (h x))
 ```
 
+The difference between `($)` and `(.)`:  
+`(.)` composes functions, while `($)` applies functions
+`(.)` has higher precedence than `($)`
+
+`a $ b $ c $ d` is `a $ (b $ (c $ d))`, but `a . b . c $ d` is `(a . (b . c)) $ d`.
+
 #### Others
 
 Comments can be written as follows:

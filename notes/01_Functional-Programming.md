@@ -112,7 +112,7 @@ Note that the order of bindings doesn't matter. Haskell functions have no side e
 
 ### Higher Order Functions
 
-A **higher order function** is a function which takes another functions an argument
+A **higher order function** is a function which takes another functions as arguments
 
 ``` hs
 twice :: (a -> a) -> (a -> a)
@@ -305,21 +305,18 @@ Various list functions that are built into Haskell's standard library
 
 #### Notation
 
-By default, alphanumerical functions use prefix notation, while non-alphanumerical functions use infix notation
+By default, alphanumerical functions use prefix notation. We can use **infix** notation by writing the function in backticks `` ` ``.
 
 ``` hs
-div n 10 -- for n divided by 10
-mod n 10 -- for n modulo 10
--- vs
-f . g   -- opposed to . f g
-f $ g   -- opposed to $ f g
+div n 10 ≡ n `div` 10
+mod n 10 ≡ n `mod` 10
 ```
 
-We can use **infix** notation by writing the function in backticks `` ` ``.
+Non-alphanumerical functions use infix notation. You can use prefix notation by enclosing the operator in brackets `()`.
 
 ``` hs
-n `div` 10
-n `mod` 10
+a + b ≡ (+) a b
+f $ g ≡ ($) f g
 ```
 
 #### `let ... in ...`
@@ -332,7 +329,7 @@ toCartesian = \(r, theta) -> let
                              in (x, y)
 ```
 
-#### `case`
+#### `case` Statements
 
 ``` hs
 case exp of
@@ -352,7 +349,7 @@ hello x =
     Fish -> "bubble"
 ```
 
-#### `if`
+#### `if` Statements
 
 The syntax for `if` expressions is:
 
@@ -417,25 +414,52 @@ f $ g $ h x  =  f (g (h x))
 
 #### Others
 
-* Comments can be written with  
-`--` for single line comments  
-For multi-line comments
+Comments can be written as follows:
 
-    ``` hs
-    {-
-       I'm a multi-
-       line comment
-    -}
-    ```
+``` hs
+-- I'm a single line comment
+{-
+   I'm a multi-
+   line comment
+-}
+```
 
 * `!!` is an indexing operator; `numList !! 2` gets the item at index 2
 * `/=` is the not-equal operator
 * `++` is a list concatenation operator
 
+Operators can have different precedences over other operators, as well as being right-, left- or non-associative.
+
+``` txt
++--------+----------------------+-----------------------+-------------------+
+| Prec-  |   Left associative   |    Non-associative    | Right associative |
+| edence |      operators       |       operators       |    operators      |
++--------+----------------------+-----------------------+-------------------+
+| 9      | !!                   |                       | .                 |
+| 8      |                      |                       | ^, ^^, **         |
+| 7      | *, /, `div`,         |                       |                   |
+|        | `mod`, `rem`, `quot` |                       |                   |
+| 6      | +, -                 |                       |                   |
+| 5      |                      |                       | :, ++             |
+| 4      |                      | ==, /=, <, <=, >, >=, |                   |
+|        |                      | `elem`, `notElem`     |                   |
+| 3      |                      |                       | &&                |
+| 2      |                      |                       | ||                |
+| 1      | >>, >>=              |                       |                   |
+| 0      |                      |                       | $, $!, `seq`      |
++--------+----------------------+-----------------------+-------------------+
+```
+
+Function application has the highest precedence (think precedence `10` in the table above).
+
 You can find the type of functions on `ghci`/`stack repl` by using `:t`. E.g.
 
 On `ghci`/`stack repl`:
 
+* `:e` opens/creates a Haskell file
+* `:i` display information about an operator/function
+* `:l` loads a Haskell file
+* `:r` runs loaded modules
 * `:t` determine type of var. e.g. `:t True` gives `True :: Bool`
 
     ``` hs
@@ -443,6 +467,4 @@ On `ghci`/`stack repl`:
     map :: (a -> b) -> [a] -> [b]
     ```
 
-* `:l` loads a Haskell file
-* `:e` opens/creates a Haskell file
-* `:r` runs modules
+* `:!` runs a given shell command e.g. `:! clear`

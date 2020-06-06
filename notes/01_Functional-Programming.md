@@ -274,7 +274,7 @@ Various list functions that are built into Haskell's standard library
     sum (x:xs) = x + sum xs
     ```
 
-* `foldr` given a binary operator, a starting value (typically the right-identity of the operator), and a list, it reduces the list using the binary operator from right to left.
+* `foldr` given a binary operator, a starting value (typically the right-identity of the operator), and a list, it reduces the list using the binary operator from **right-to-left**.
 
     ``` hs
     foldr :: (a -> b -> b) -> b -> [a] -> b
@@ -292,7 +292,7 @@ Various list functions that are built into Haskell's standard library
     concat = foldr (++) []
     ```
 
-* `foldl`
+* `foldl` does what `foldr` does but from **left-to-right**
 
     ``` hs
     foldl :: (b -> a -> b) -> b -> [a] -> b
@@ -311,8 +311,8 @@ By default, alphanumerical functions use prefix notation, while non-alphanumeric
 div n 10 -- for n divided by 10
 mod n 10 -- for n modulo 10
 -- vs
-f . g
-f $ g
+f . g   -- opposed to . f g
+f $ g   -- opposed to $ f g
 ```
 
 We can use **infix** notation by writing the function in backticks `` ` ``.
@@ -415,16 +415,34 @@ It gives low, **right-associative** precedence
 f $ g $ h x  =  f (g (h x))
 ```
 
-`:t` determine type of var. e.g. `:t True` gives `True :: Bool`
-
 #### Others
 
-* `!!` is an indexing operator
+* Comments can be written with  
+`--` for single line comments  
+For multi-line comments
+
+    ``` hs
+    {-
+       I'm a multi-
+       line comment
+    -}
+    ```
+
+* `!!` is an indexing operator; `numList !! 2` gets the item at index 2
 * `/=` is the not-equal operator
+* `++` is a list concatenation operator
 
 You can find the type of functions on `ghci`/`stack repl` by using `:t`. E.g.
 
-``` hs
-> :t map
-map :: (a -> b) -> [a] -> [b]
-```
+On `ghci`/`stack repl`:
+
+* `:t` determine type of var. e.g. `:t True` gives `True :: Bool`
+
+    ``` hs
+    > :t map
+    map :: (a -> b) -> [a] -> [b]
+    ```
+
+* `:l` loads a Haskell file
+* `:e` opens/creates a Haskell file
+* `:r` runs modules

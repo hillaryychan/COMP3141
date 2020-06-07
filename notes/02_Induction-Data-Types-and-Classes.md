@@ -158,7 +158,7 @@ Example: We eliminate the failure state of no contact details
 ``` hs
 data Contact = C Name (Maybe Address) (Maybe Email)
 -- is changed to
-data ContactDetails = EmailOnl Email
+data ContactDetails = EmailOnly Email
                     | PostOnly Address
                     | Both Address Email
 data Contact = C Name ContactDetails
@@ -344,3 +344,113 @@ If `x == y` then `f x == f y` for all functions `f`
 But this is debated
 
 ## Functors
+
+Haskell is actually comprised of ***two languages***  
+The **value-level** language, consisting of expressions such as `if`, `let`, `3` etc.  
+The **type-level** language, consisting of types `Int`, `Bool`, synonyms like `String`, and type ***constructors*** like `Maybe`, `(->)`, `[  ]` etc.
+
+This type level language itself has a type system!
+
+Just as terms in the value level language are given types, terms in the type level language are given **kinds**.  
+The most basic kind is written as `*`.
+
+Seeing as `Maybe` is parameterised by one argument, `Maybe` has kind `* -> *`  
+Given a type (e.g. `Int`) it will return a type (`Maybe Int`)
+
+Suppose we have a function:
+
+``` hs
+toString :: Int -> String
+```
+
+And we also have a function to give us some numbers:
+
+``` hs
+getNumbers :: Seed -> [Int]
+```
+
+We can compose `toString` with `getNumbers` to get a function `f :: Seed -> [String]`
+
+``` hs
+f = map toString . getNumbers
+```
+
+Suppose we have a function:
+
+``` hs
+toString :: Int -> String
+```
+
+And we also have a function that ***may*** give us a number:
+
+``` hs
+tryNumber :: Seed -> Maybe Int
+```
+
+We can compose `toString` with `tryNumber` to get a function `f :: Seed -> Maybe String`  
+
+``` hs
+maybeMap :: (a -> b) -> Maybe a -> Maybe b
+maybeMap f Nothing  = Nothing
+maybeMap f (Just x) = Just (f x)
+-- alternatively it can be written as
+maybeMap f mx = case mx of
+                  Nothing -> Nothing
+                  Just x  -> Just (f x)
+
+f = maybeMap toString . tryNumber
+```
+
+All these functions are in the interface of a single type class called `Functor`
+
+``` hs
+class Functor f where
+  fmap :: (a -> b) -> f a -> f b
+```
+
+Unlike previous type classes we've seen like `Ord` and `Semigroup`, `Functor` is over types of kind `* -> *`
+
+Instances for:
+
+* lists
+* `Maybe`
+* Tuples
+
+    ``` hs
+    -- type level:
+    -- (,) :: * -> (* -> *)
+    -- (,) x :: * -> *
+
+    instance Functor ((,) x) where
+    --  fmap :: (a -> b) -> f a -> f b
+    --  fmap :: (a -> b) -> (,) x a -> (,) x b
+    --  fmap :: (a -> b) -> (x,a) -> (x, b)
+      fmap f (x,a) = (x, f a)
+    ```
+
+* Functions
+
+    ``` hs
+    -- type level:
+    -- (->) :: * -> (* -> *)
+    -- (->) x :: * -> *
+
+    instance Functor ((->) x) where
+    --  fmap :: (a -> b) -> f a -> f b
+    --  fmap :: (a -> b) -> (->) x a -> (->) x b
+    --  fmap :: (a -> b) -> (x -> a) -> (x -> b)
+      fmap = (.)
+    ```
+
+### Functor Laws
+
+The functor type class must obey two laws:
+
+``` txt
+(1) fmap id == id
+(2) fmap f . fmap g == fmap (f . g)
+```
+
+In Haskell's type system, it's impossible to make a total `fmap` function that satisifes the first law but violated the second.
+
+This is due to [parametricity](TODO)

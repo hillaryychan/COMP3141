@@ -2,4 +2,5 @@
 
 [Setting up](https://github.com/hillaryychan/COMP3141/blob/master/setup.md)
 
-1. [Functional Programming](https://github.com/hillaryychan/COMP3141/blob/master/notes/01_Functional-Programming.md)
+1. [Functional Programming](notes/02_Induction-Data-Types-and-Classes.md)
+2. [Induction, Data Types and Classes](notes/02_Induction-Data-Types-and-Classes.md)

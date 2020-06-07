@@ -296,7 +296,7 @@ newtype Score = S Integer
 instance Semigroup Score where
   S x <> S y = S (x + y)
 
-instace Monoid Score where
+instance Monoid Score where
   mempty = S 0
 ```
 
@@ -335,7 +335,7 @@ class Eq a where
 Instances should satisfy the following laws:
 
 1. **Reflexivity**: `x == x`
-2. **Transitivity**: If `x == y` and `y == x`, then `x == z`
+2. **Transitivity**: If `x == y` and `y == z`, then `x == z`
 3. **Symmetry**: If `x == y` then `y == x`
 
 Relations that satisfies these are called **equivalence relations**  

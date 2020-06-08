@@ -1,1 +1,5 @@
 Lectures/
+
+**/*.tar.gz
+**/.stack-work/
+**/stack.yaml.lock

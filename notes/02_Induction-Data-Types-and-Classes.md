@@ -339,7 +339,7 @@ Instances should satisfy the following laws:
 3. **Symmetry**: If `x == y` then `y == x`
 
 Relations that satisfies these are called **equivalence relations**  
-Some argue that the `Eq` class should only be for *equality*, requiring stricter laws like:
+Some argue that the `Eq` class should only be for *equality*, requiring stricter laws like:  
 If `x == y` then `f x == f y` for all functions `f`  
 But this is debated
 

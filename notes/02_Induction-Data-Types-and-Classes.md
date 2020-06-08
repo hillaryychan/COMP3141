@@ -465,6 +465,7 @@ The functor type class must obey two laws:
          to applying (f . g) on every element on the structure
 ```
 
-In Haskell's type system, it's impossible to make a total `fmap` function that satisifes the first law but violated the second.
+In Haskell's type system, it's impossible to make a total `fmap` function that satisfies the first law but violated the second.  
+In other words, ***if one law is satisfied, then the other law is also satisfied***.
 
 This is due to [parametricity](TODO)

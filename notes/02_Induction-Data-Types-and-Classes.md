@@ -72,7 +72,7 @@ But these definitions allow `Points` and `Vectors` to be used interchangeable, i
 
 We can define out own compound types using the `data` keyword
 
-![custom types](imgs/02-7_custom-types.png)
+![custom types](../imgs/02-7_custom-types.png)
 
 Note: the type name and constructor name don't have to be the same  
 Note: `deriving (Show, Eq)` means "make this printable and comparable"

@@ -18,7 +18,7 @@ Therefore, to show *P(n)* for all *n*, it suffices to show:
 
 Example:
 
-![induction example](imgs/02-2_induction-example.jpg)
+![induction example](../imgs/02-2_induction-example.jpg)
 
 ### Induction on Haskell Lists
 
@@ -50,7 +50,7 @@ foldr f z (x:xs) = x `f` foldr f z xs -- B
 sum ls == foldr (+) 0 ls
 ```
 
-![list induction](imgs/02-2_induction-example.jpg)
+![list induction](../imgs/02-2_induction-example.jpg)
 
 ## Data Types
 

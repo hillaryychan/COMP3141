@@ -262,7 +262,7 @@ instance Semigroup Colour where
 
 #### Monoid
 
-A **monoid** is a semigroup (S, •) equipped with a special ***identity element*** `x :: S` such that `x • z = x` and `z • y = y` for all x, y
+A **monoid** is a semigroup (S, •) equipped with a special ***identity element*** `z :: S` such that `x • z = x` and `z • y = y` for all x, y
 
 ``` hs
 class (Semigroup a) => Monoid a where

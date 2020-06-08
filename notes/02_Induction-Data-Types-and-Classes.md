@@ -357,6 +357,8 @@ The most basic kind is written as `*`.
 Seeing as `Maybe` is parameterised by one argument, `Maybe` has kind `* -> *`  
 Given a type (e.g. `Int`) it will return a type (`Maybe Int`)
 
+### Lists
+
 Suppose we have a function:
 
 ``` hs
@@ -374,6 +376,8 @@ We can compose `toString` with `getNumbers` to get a function `f :: Seed -> [Str
 ``` hs
 f = map toString . getNumbers
 ```
+
+### Maybe
 
 Suppose we have a function:
 
@@ -401,7 +405,9 @@ maybeMap f mx = case mx of
 f = maybeMap toString . tryNumber
 ```
 
-All these functions are in the interface of a single type class called `Functor`
+### Functors Explained
+
+All these functions (i.e `maybeMap`, `map`) are in the interface of a single type class called `Functor`
 
 ``` hs
 class Functor f where
@@ -424,8 +430,10 @@ Instances for:
     instance Functor ((,) x) where
     --  fmap :: (a -> b) -> f a -> f b
     --  fmap :: (a -> b) -> (,) x a -> (,) x b
-    --  fmap :: (a -> b) -> (x,a) -> (x, b)
+    --  fmap :: (a -> b) -> (x, a) -> (x, b)
       fmap f (x,a) = (x, f a)
+    -- the functor instance for tuples just applies
+    -- the function to the right-hand side of the tuple
     ```
 
 * Functions
@@ -440,6 +448,7 @@ Instances for:
     --  fmap :: (a -> b) -> (->) x a -> (->) x b
     --  fmap :: (a -> b) -> (x -> a) -> (x -> b)
       fmap = (.)
+    -- the functor instance of (->) simply composes functions
     ```
 
 ### Functor Laws
@@ -447,8 +456,13 @@ Instances for:
 The functor type class must obey two laws:
 
 ``` txt
-(1) fmap id == id
-(2) fmap f . fmap g == fmap (f . g)
+(1) fmap id == id                                       (Identity Law)
+    E.g. if the identity function is applied to every element
+         in a structure (e.g. a list) we'd get the same structure back
+(2) fmap f . fmap g == fmap (f . g)                  (Composition Law)
+    E.g. if we apply g on every element in a structure (e.g. a list),
+         the we apply g on every element. this should be equivalent
+         to applying (f . g) on every element on the structure
 ```
 
 In Haskell's type system, it's impossible to make a total `fmap` function that satisifes the first law but violated the second.

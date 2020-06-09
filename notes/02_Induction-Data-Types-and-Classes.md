@@ -5,8 +5,8 @@
 Suppose we want to prove that a property *P(n)* holds for **all** natural numbers *n*.  
 Remember that the set of natural numbers *N* can be defined as follows:
 
-> Definition of Natural Numbers:
-> (1) 0 is a natural number
+> Definition of Natural Numbers:  
+> (1) 0 is a natural number  
 > (2) For any natural number n, n+1 is also a natural number
 
 Therefore, to show *P(n)* for all *n*, it suffices to show:
@@ -22,8 +22,8 @@ Example:
 
 Haskell lists can be defined similarly to natural numbers
 
-> Definition of Haskell Lists:
-> (1) `[]` is a list
+> Definition of Haskell Lists:  
+> (1) `[]` is a list  
 > (2) For any list `xs`, `x:xs` is also a list (for any item `x`)
 
 This means, if we want to prove that a property `P(ls)` holds for all lists `ls`, it suffices to show:
@@ -451,9 +451,9 @@ Instances for:
 
 The functor type class must obey two laws:
 
-> (1) Idenity Law: `fmap id == id`
-> E.g. if the identity function is applied to every element in a structure (e.g. a list) we'd get the same structure back
-> (2) Composition Law: `fmap f . fmap g == fmap (f . g)`
+> (1) Idenity Law: `fmap id == id`  
+> E.g. if the identity function is applied to every element in a structure (e.g. a list) we'd get the same structure back  
+> (2) Composition Law: `fmap f . fmap g == fmap (f . g)`  
 > E.g. if we apply g on every element in a structure (e.g. a list), the we apply g on every element. this should be equivalent to applying (f . g) on every element on the structure
 
 In Haskell's type system, it's impossible to make a total `fmap` function that satisfies the first law but violated the second.  

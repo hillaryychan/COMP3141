@@ -420,6 +420,8 @@ The difference between `($)` and `(.)`:
 
 #### Others
 
+By convention, names that start with a lowercase letter are ***type variables***, and names that start with an uppercase letter are concrete types
+
 Comments can be written as follows:
 
 ``` hs
@@ -474,3 +476,5 @@ On `ghci`/`stack repl`:
     ```
 
 * `:!` runs a given shell command e.g. `:! clear`
+
+Also see [week 1 wednesday code](../Wed-prac/week1.pdf).

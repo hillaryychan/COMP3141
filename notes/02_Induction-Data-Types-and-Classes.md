@@ -75,7 +75,7 @@ Note: `deriving (Show, Eq)` means "make this printable and comparable"
 
 #### Records
 
-We could define Colour similarly:
+We could define Colour as a **product type**:
 
 ``` hs
 data Colour = Colour Int Int Int Int
@@ -92,6 +92,40 @@ data Colour = Colour { redC     :: Int
                      , opacityC :: Int
                      } deriving (Show, Eq)
 redC (Colour 255 128 0 255) -- gives 255
+
+-- it is equivalent to
+data Colour = Colour Int Int Int Int
+redC     (Colour r _ _ _) = r
+greenC   (Colour _ g _ _) = g
+blueC    (Colour _ _ b _) = b
+opacityC (Colour _ _ _ o) = o
+```
+
+### Patterns in Function Definitions
+
+Patterns are used to deconstruct a value of a particular type.  
+A pattern can be a binding to a hole (`_`), a name, or a constructor of the type. When defining a function, each argument is bound using a separate pattern.
+
+``` hs
+if' :: Bool -> a -> a -> a
+if' True  then' _     = then'
+if' False _     else' = else'
+```
+
+``` hs
+factorial :: Int -> Int
+factorial 0 = 1
+factorial n = n * factorial (n-1)
+```
+
+``` hs
+isVowel :: Char -> Bool
+isVowel 'a' = True
+isVowel 'e' = True
+isVowel 'i' = True
+isVowel 'o' = True
+isVowel 'u' = True
+isVowel _   = False
 ```
 
 ### Enumeration Types
@@ -108,7 +142,13 @@ data FillStyle = SolidFill | NoFill
                deriving (Show, Eq)
 ```
 
-Types with more than one constructor are called **sum types**
+Types with more than one constructor are called **sum types**. Constructors are how an value of a particular type is created:
+
+``` hs
+data Bool = True | False
+data Int = .. | (-1) | 0 | 2 | 3 | ..
+data Char = 'a' | 'b' | 'c' | 'd' | 'e' | ..
+```
 
 Just as the `Point` constructor took two `Float` arguments, constructors for sum types can take parameters too, allowing us to model different kinds of shape:
 
@@ -122,6 +162,8 @@ data PictureObject = Path    [Point]        Colour LineStyle
 
 type Picture = [PictureObject]
 ```
+
+Here, type creates a ***type alias*** which provides only an alternate name which refers to an existing type.
 
 ### Recursive and Parametric Types
 
@@ -140,7 +182,18 @@ data List a  = Nil | Cons a (list a)
 We can even define natural numbers, where 2 is encoded as `Succ (Succ Zero)`:
 
 ``` hs
-data Natural = Zero | Succ Natural
+data Nat= Zero | Succ Nat
+
+add :: Nat -> Nat -> Nat
+add Zero     n = n
+add (Succ a) b = add a (Succ b)  -- (a + 1) + b == a + (b + 1)
+
+zero = Zero
+one = Succ Zero
+two = add one one
+
+-- Nat is recursive as it has the (Succ) constructor which takes a Nat
+-- Nat has the Zero constructor which does not recurse and acts like a base case
 ```
 
 ### Types in Design
@@ -188,7 +241,12 @@ To eliminate partiality, we must either:
 ## Type Classes
 
 We've seen functions that work on multiple types (e.g. `compare`, `(==)`, `(+)`, `show`) and their corresponding constraints on type variables (e.g `Ord`, `Eq`, `Num` and `Show`).  
-These constraints are called **type classes**, and can be thought of as a *set of types* for which certain operations are implemented
+These constraints are called **type classes**, and can be thought of as a *set of types* for which certain operations are implemented.
+
+Type classes describe a set of behaviours that can be implemented for any type. A function or type class inheritance (i.e `deriving (Show)`) can operate on a type variable constrained by a type class instead of a concrete type. It is similar to an OOP interface
+
+When creating an instance of a type class with ***laws***, you must ensure that the laws are held manually (they cannot be checked by the compiler).  
+When using a type class with ***laws***, you can assume that all laws hold for all instances of the type class.
 
 ### Show
 
@@ -213,7 +271,7 @@ Haskell supports automatically `deriving` instances for some classes, including 
 
 ### Read
 
-Type classes can also ***overload*** based on the type returned, unlike similar features like Java's interfaces:
+Type classes can also ***overload*** based on the type returned, unlike similar features like Java's interfaces. `Read` allows us to take a string representation of a value and decode it.
 
 ``` hs
 class Read a where
@@ -282,6 +340,7 @@ Haskell doesn't use any of these, because there can only be **one** instance per
 ##### Newtypes
 
 A common technique is to define a ***separate type*** that is represented identically to the original type, but can have its own, different type class instances.  
+`newtype` allows you to encapsulate an existing type to add constraints or properties without adding runtime overload.  
 In Haskell, this is done with the `newtype` keyword
 
 A `newtype` declaration is much like a `data` declaration except that there can be only **one constructor** and it must take exactly **one argument**:
@@ -298,11 +357,24 @@ instance Monoid Score where
 
 Here `Score` is represented identically to `Integer`, and thus no performance penalty is incurred to convert between them.  
 
+Example with kilometres and miles:
+
+``` hs
+newtype Kilometers = Kilometers Float
+newtype Miles = Miles Float
+
+kilometresToMiles :: Kilometers -> Miles
+kilometresToMiles (Kilometers kms) = Miles $ kms / 1.60934
+
+milesToKilometers :: Miles -> Kilometers
+milesToKilometers (Miles miles) = Kilometers % miles * 1.60934
+```
+
 ***In general, `newtypes` are a great way to prevent mistakes***. Use them frequently
 
 ### Ord
 
-`Ord` is a type class for ***inequality comparison***:
+`Ord` allows us to compare two values of a type for **partial** or **total inequality**
 
 ``` hs
 class Order a where
@@ -321,7 +393,7 @@ Without the fourth (totality), they are called **partial orders**. An example of
 
 ### Eq
 
-`Eq` is a type class for **equality** or **equivalence**;
+`Eq` allows us to compare two values of a type for an **equivalence** or **equality**;
 
 ``` hs
 class Eq a where
@@ -333,25 +405,26 @@ Instances should satisfy the following laws:
 1. **Reflexivity**: `x == x`
 2. **Transitivity**: If `x == y` and `y == z`, then `x == z`
 3. **Symmetry**: If `x == y` then `y == x`
+4. **Negation** (equality): If `x =/= y` then `¬(x = y)`
+5. **Substitutivity** (equality): If `x == y` then `f x == f y` for all functions `f`
 
-Relations that satisfies these are called **equivalence relations**  
-Some argue that the `Eq` class should only be for *equality*, requiring stricter laws like:  
-If `x == y` then `f x == f y` for all functions `f`  
-But this is debated
+Relations that satisfy **laws 1-3** are called **equivalence relations**  
+Relations that satisfy **laws 1-5** are called **equality relations**
 
 ## Functors
 
 Haskell is actually comprised of ***two languages***  
-The **value-level** language, consisting of expressions such as `if`, `let`, `3` etc.  
+The **value-level/runtime** language, consisting of expressions such as `if`, `let`, `3` etc.  
 The **type-level** language, consisting of types `Int`, `Bool`, synonyms like `String`, and type ***constructors*** like `Maybe`, `(->)`, `[  ]` etc.
 
 This type level language itself has a type system!
 
-Just as terms in the value level language are given types, terms in the type level language are given **kinds**.  
+Just as values and functions in the *runtime language* has types, types in the *type language* of Haskell have **kinds**.  
 The most basic kind is written as `*`.
 
 Seeing as `Maybe` is parameterised by one argument, `Maybe` has kind `* -> *`  
-Given a type (e.g. `Int`) it will return a type (`Maybe Int`)
+`Maybe` is a type constructor that takes a type and produces a type that may or may not hold a value  
+`Maybe Int` is a concrete type that may or may not hold an `Int`
 
 ### Lists
 

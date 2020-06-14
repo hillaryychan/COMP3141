@@ -525,6 +525,8 @@ You can think of a functor as a way to define behaviour of a type when given to 
 1. Define a type (e.g. `Type_from_step_1`) that is able to be mapped over
 2. Use `instance Functor Type_from_step_1 where ...` to define the behaviour that should occur when we call `fmap` on a variable with the given `Type_from_step_1`.
 
+Note: `type_from_step_1` must take a type parameter. For example, `Maybe` takes a type parameter (`Int`, `Bool`, `Char` etc.) to become `Maybe Int`, `Maybe Bool`, `Maybe Char` etc. This is what is meant by "kinds".
+
 ### Functor Laws
 
 The functor type class must obey two laws:

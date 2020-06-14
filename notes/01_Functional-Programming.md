@@ -16,7 +16,7 @@ Why functional programming and how does it help?
 
 1. **Close to Maths**: more abstract, less error-prone
 2. **Types**: act as doc., the compiler eliminates many errors
-3. **Property-based Testing**: QuickCheck (see [here](01_Functional-Programming.md#property-based-testing))
+3. **Property-based Testing**: QuickCheck (see [here](03_PBT-Lazy-Eval.md#property-based-testing))
 4. **Verification**: equational reasoning eases proofs (see [here](TODO))
 
 ## Haskell

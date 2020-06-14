@@ -225,12 +225,18 @@ ones = 1 : ones
 Many functions such as `take`, `drop`, `head`, `tail`, `filter` and `map` work fine on infinite lists
 
 ``` hs
-naturals = 0 : map (1+) naturals
+naturals = 0 : map (+1) naturals
 -- or
 naturals = map sum (inits ones)
+-- where inits generates all possible prefixes of a list
+-- e.g. inits [1,2,3]
+-- gives [[], [1], [1,2], [1,2,3]]
 
 -- For Fibonacci numbers
 fibs = 1:1:zipWith (+) fibs (tail fibs)
+-- where zipWith takes a function and two lists
+-- e.g. zipWith (+) [1,2,3] [10,20,30]
+-- gives [11,22,33]
 ```
 
 [^1]: J. Hughes, "Why Functional Programming Matters", Comp H., 1989

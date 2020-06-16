@@ -1,5 +1,6 @@
 Lectures/
 
+exercises/**/*.png
 **/*.tar.gz
 **/.stack-work/
 **/stack.yaml.lock

@@ -385,7 +385,7 @@ Example:
 
 ``` hs
 fac :: Int -> Int
-fac c
+fac n
  | n <= 1    = 1
  | otherwise = n * fac (n-1)
 ```

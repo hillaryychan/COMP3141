@@ -61,10 +61,10 @@ We could define a tiny ADT for validated email addresses, where the data invaria
 
 ``` hs
 module EmailADT(Email, checkEmail, sendEmail)
-  newtype Email = Email String
-  checkEmail :: String -> Maybe Email
-  checkEmail str | '@' `elem` str = Just (Email str)
-                 | otherwise      = Nothing
+newtype Email = Email String
+checkEmail :: String -> Maybe Email
+checkEmail str | '@' `elem` str = Just (Email str)
+               | otherwise      = Nothing
 ```
 
 Then change the type of `sendEmail` to `sendEmail :: Email -> String -> IO()`

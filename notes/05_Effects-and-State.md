@@ -74,7 +74,7 @@ We can't, in general, *reason equationally* about effectful programs
 It is possible to program pure functions in Haskell.
 
 Typically, a computation involving some state of type `s` and returning a result of type `a` can be expressed as a function: `s -> (s, a)`  
-Rather than *change* the state, we return a **new copy** of the state.
+Rather than *change* the state, we return a **new copy** of the state along with a result
 
 All that copying might seem expensive, but by using tree data structures, we can usually reduce the cost to an O(log n) overhead.
 
@@ -84,44 +84,86 @@ Example: labelling notes in a tree in ascending number in infix order
 
 ``` hs
 data Tree a = Branch a (Tree a) (Tree a) | Leaf
+              deriving (Show, Eq)
 label :: Tree () -> Tree Int
 ```
 
 ![tree labelling](../imgs/05-8_tree-labelling.png)
 
-We will use a data type to simplify this:  
+Implementing tree labelling:
+
+``` hs
+-- label infix order stating at 1
+label :: Tree () -> Tree Int
+label t = snd (go t 1)         -- get second element of go
+where
+  go :: Tree () > Int -> (Int, Tree Int)
+  go Leaf c = (c, Leaf)       -- set Leaf label to count given
+  go (Branch () l r) c = let
+    (c', l') = go l c
+    v = c'
+    (c'', r') = go r (c' + 1)
+    in (c'', Branch v l' r')
+```
+
+The above implementation is *ugly*  and we can use a data type to simplify this:  
 `newtype State s a =` is a **procedure** that, manipulating some state of type `s` returns `a`
 
 State operations:
 
 ``` hs
-get :: State s s
-put :: s -> State s ()
-pure :: a -> State s a
-evalState :: State s a -> s -> a
-modify :: (s -> s) -> State s ()
+get :: State s s                  -- return the current state
+put :: s -> State s ()            -- update state to be equal to the new state given
+pure :: a -> State s a            -- given a, return the state and a (like id)
+evalState :: State s a -> s -> a  -- given a state S a, and an initial state s,
+                                  -- run the stateful procedure and give the return value a
+modify :: (s -> s) -> State s ()  -- given a stateful operation, run in it on a given state
+modify f = do
+  s <- get   -- read the state
+  put (f, s) -- update the state
 ```
 
-Sequential composition:
+Ways to join stateful procedures together:
+
+* Sequential composition:
+
+    ``` hs
+    -- Do one state action after another with `do` blocks:
+    do put 42
+       pure True
+    -- desugars
+    put 42 >> put True
+    (>>) :: State s a -> State s b -> State s b
+    ```
+
+* Blind:
+
+    ``` hs
+    -- The second step can depend on the first step with bind
+    do x <- get
+       pure (x+1)
+    -- desugars
+    get >>= \x -> pure (x + 1)
+    (>>=) :: State s a -> (a => State s b) -> State s b
+    ```
+
+Implementing tree labelling with state operations:
 
 ``` hs
--- Do one state action after another with `do` blocks:
-do put 42
-   pure True
--- desugars
-put 42 >> put True
-(>>) :: State s a -> State s b -> State s b
-```
+import Control.Monad.State
 
-Blind:
-
-``` hs
--- The second step can depend on the first step with bind
-do x <- get
-   pure (x+1)
--- desugars
-get >>= \x -> pure (x + 1)
-(>>=) :: State s a -> (a => State s b) -> State s b
+-- label infix order stating at 1
+label' :: Tree () -> Tree Int
+label' t = evalState (go t) 1
+where
+  go :: Tree () > State Int (Tree Int)
+  go Leaf = pure Leaf
+  go (Branch () l r) = do
+    l' <- go l
+    v <- get
+    put (v + 1)
+    r' <- go r
+    pure (Branch v l' r')
 ```
 
 ### State Implementation
@@ -132,6 +174,184 @@ The `State` type is essentially implemented as the same state-passing we did bef
 newtype State s a = State (s -> (s,a))
 ```
 
-TODO - implement state operation for newtype
+``` hs
+newtype State' s a = State (s -> (s,a))
+
+get' :: State' s s
+get' = (State $ \s -> (s, s))
+
+put' :: s -> State' s ()
+put' s = State $ \_ -> (s, ())
+
+pure' :: a ->  State' s a
+pure' a = State $ \s -> (s, a)
+
+evalState' :: State' s a -> s -> a
+evalState' (State f) s = snd (f s)
+
+(>>=!) :: State' s a -> (a -> State' s b) -> State' s b
+(State' c) >>=! f = State' $ \s -> let (s', a) = c s
+                                       (State' c') = f a
+                                   in c' s'
+
+(>>!) :: State' s a -> State' s b -> State; s b
+(>>!) a b = a >>! \_ -> b
+```
 
 In the Haskell standard library `mtl`, the `State` type is actually implemented slightly differently, but the implementation essentially works the same way.
+
+## IO
+
+Sometimes we need side effects.  
+We need to perform I/O, to communicate with the user or hardware
+We might need effects for maximum efficiency (but usually internal effects are sufficient)
+
+Haskell's approach is to be ***pure by default, effectful when necessary***
+
+A **procedure** that performs some side effects, returning a result of type `a` is written as `IO a`
+
+> `IO a` is an abstract type, but we can think of it as a function:  
+> `RealWorld -> (Realword, a)`
+
+``` hs
+(>>=) :: IO a -> (a -> IO b) -> IO b
+pure :: a -> IO a
+
+getChar :: IO Char
+readLine :: IO String
+putStrLn :: String -> IO ()
+```
+
+We can convert pure values to impure procedure with `pure`:
+
+``` hs
+pure :: a -> IO
+```
+
+But we can't convert impure procedures to pure values:
+
+``` hs
+??? :: IO a -> a
+```
+
+The only function that gets an `a` from an `IO a` is `>>=`:
+
+``` hs
+(>>=) :: IO a -> (a -> IO b) -> IO b
+```
+
+But it returns and `IO` procedure as well.
+
+> The moment you use an `IO` procedure in a function, `IO` shows us in the types, and you can't get rid of it.
+
+If a function makes use of `IO` effects directly or indirectly, it will have `IO` in its type.
+
+We ultimately "run" `IO` procedures by calling them from `main`:
+
+``` hs
+main :: IO ()
+```
+
+![haskell design strategy](../imgs/05-14_haskell-design-strategy.png)
+
+Example: given an input number `n`, print a triangle of `*` characters of base width n
+
+``` hs
+printTriangle :: Int -> IO ()
+printTriangle 0 = pure ()
+printTriangle n = do
+  putStrLn (replicate n '*')
+  printTriangle (n - 1)
+
+main = printTriangle 9
+```
+
+Benefits of an `IO` type:
+
+* Absence of effects make type system more informative:
+    * A type signature captures the **entire interface** of the function
+    * All **dependencies are explicit** in the form of data dependencies
+    * All **dependencies are types**
+* It is easier to reason about pure code and it is easier to test it
+    * Testing is local, doesn't require complex set-up and tear-down
+    * Reasoning is local, doesn't require state invariants
+    * Type checking leads to strong guarantees
+
+### Mutable Variables
+
+We can have mutability in Haskell, *if we really need it*, using `IORef`
+
+``` hs
+data IORef a
+newIORef :: a -> IO (IORef a)
+readIORef :: IORef a -> IO a
+writeIORef :: IORef a -> a -> IO ()
+```
+
+Example: averaging a list of numbers using `IORefs`
+
+``` hs
+averageListIO :: [Int] -> IO Int
+averageListIO ls = do
+    sum <- newIORef 0
+    count <- newIORef 0
+    let loop :: [Int] -> IO ()
+        loop [] = pure ()
+        loop (x:xs) = do
+            s <- readIORef sum
+            writeIORef sum (s + x)
+            c <- readIORef count
+            writeIORef count (c + 1)
+            loop xs
+    loop ls
+    s <- readIORef sum
+    c <- readIORef count
+    pure (s `div` c)
+```
+
+Something like averaging a list of numbers doesn't require external effects, even if we use mutation internally
+
+``` hs
+data STRef s a
+newSTRef :: a -> ST (STRef s a)
+readSTRef :: STRef s a -> ST s a
+writeSTRef :: STRef s a -> a -> ST s ()
+runST :: (forall s. ST s a) -> a
+```
+
+The extra `s` parameter is called a **state thread**, that ensures that mutable variables don't leak outside the `ST` computation.
+
+Note: `ST` is not assessable in COMP3141
+
+## QuickChecking Effects
+
+QuickCheck lets us test `IO` (and `ST`) using this special property monad interface:
+
+``` hs
+monadicIO :: PropertyM IO () -> Property
+pre       :: Bool -> PropertyM IO ()
+assert    :: Bool -> PropertyM IO ()
+run       :: IO a -> PropertyM IO a
+```
+
+`do` notation and similar can be used for `PropertyM IO` procedures just as with `State s` and `IO` procedures.
+
+Example: testing our `IO average` function works:
+
+``` hs
+prop_average :: [Int] -> Property
+prop_average ls = monadicIO $ do
+    pre (length ls > 0)
+    avg <- run (averageListIO ls)
+    assert (avg == (sum ls `div` length ls))
+```
+
+Example: testing the GNU `factor` program works correctly
+
+``` hs
+test_gnuFactor :: Positive Integer -> Property
+test_gnuFactor (Positive n) = monadicIO $ do
+    str <- run (readProcess "gfactor" [show n] "")
+    let factors = map read (tail (words str))
+    assert (product factors == n)
+```

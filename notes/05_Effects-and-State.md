@@ -36,14 +36,16 @@ Examples:
     ```
 
 An **external effect** is an effect that is ***observable*** outside the function.  
-Examples: console, file and network IO; termination and non-termination; non-local control flow etc.
-**Internal effects** are not observable from outside.
+The observer doesn't necessarily have to be a user; it can be other functions.  
+Examples: console, file and network IO; termination and non-termination; non-local control flow; modifying global variables etc.  
+**Internal effects** are not observable from outside. They are contained within the function that is doing them  
+Examples: modifying local variables
 
-Memory effects are internal or external depending on the scope of memory being accessed. Global memory accesses are *external*
+Memory effects can be internal or external depending on the scope of memory being accessed. Global memory accesses are *external*
 
 ### Purity
 
-A function with no external effects is called a **pure function**.
+A function with ***no external effects*** (beyond its return value) is called a **pure function**.
 
 > A **pure function** is the mathematical notion of a function. That is, a function of type `a -> b` is *fully* specified from all elements of the domain type `a` to the codomain type `b`
 
@@ -212,6 +214,7 @@ A **procedure** that performs some side effects, returning a result of type `a` 
 
 > `IO a` is an abstract type, but we can think of it as a function:  
 > `RealWorld -> (Realword, a)`
+> (this is how it's implemented in GHC)
 
 ``` hs
 (>>=) :: IO a -> (a -> IO b) -> IO b
@@ -225,7 +228,7 @@ putStrLn :: String -> IO ()
 We can convert pure values to impure procedure with `pure`:
 
 ``` hs
-pure :: a -> IO
+pure :: a -> IO a
 ```
 
 But we can't convert impure procedures to pure values:
@@ -252,6 +255,9 @@ We ultimately "run" `IO` procedures by calling them from `main`:
 main :: IO ()
 ```
 
+The overall structure of an IO program in Haskell is:  
+We have an IO shell which includes a main function and almost all the logic for the program is in pure functions inside it. Some times we have State monads, that encapsulate the internal state.
+
 ![haskell design strategy](../imgs/05-14_haskell-design-strategy.png)
 
 Example: given an input number `n`, print a triangle of `*` characters of base width n
@@ -260,7 +266,9 @@ Example: given an input number `n`, print a triangle of `*` characters of base w
 printTriangle :: Int -> IO ()
 printTriangle 0 = pure ()
 printTriangle n = do
+  -- print n stars
   putStrLn (replicate n '*')
+  -- recurse
   printTriangle (n - 1)
 
 main = printTriangle 9
@@ -279,13 +287,18 @@ Benefits of an `IO` type:
 
 ### Mutable Variables
 
-We can have mutability in Haskell, *if we really need it*, using `IORef`
+We can have mutability in Haskell, *if we really need it*, using `IORef`  
+`IORef` is not related to `IO` except that all of its operations run in the `IO` type.  
+`IORef` can be thought of as a pointer. We can think of the following functions like this:
 
 ``` hs
 data IORef a
-newIORef :: a -> IO (IORef a)
-readIORef :: IORef a -> IO a
-writeIORef :: IORef a -> a -> IO ()
+newIORef :: a -> IO (IORef a)       -- create space for a and return a pointer to a
+readIORef :: IORef a -> IO a        -- take value from IORef and return a
+                                    --  procedure that gives you that value
+writeIORef :: IORef a -> a -> IO () -- takes a pointer and an a to put into the pointer
+                                    -- and gives you the procedure that writes the
+                                    -- value you passed in to that IORef location
 ```
 
 Example: averaging a list of numbers using `IORefs`
@@ -341,8 +354,11 @@ Example: testing our `IO average` function works:
 ``` hs
 prop_average :: [Int] -> Property
 prop_average ls = monadicIO $ do
+    -- pre-condition that length >0
     pre (length ls > 0)
+    -- take the average by run IO computation with list ls
     avg <- run (averageListIO ls)
+    -- check avg = sum / length
     assert (avg == (sum ls `div` length ls))
 ```
 
@@ -351,7 +367,10 @@ Example: testing the GNU `factor` program works correctly
 ``` hs
 test_gnuFactor :: Positive Integer -> Property
 test_gnuFactor (Positive n) = monadicIO $ do
+    -- run GNU factor and read in the output into str
     str <- run (readProcess "gfactor" [show n] "")
+    -- read in the factors
     let factors = map read (tail (words str))
+    -- check the product of the factors equals n
     assert (product factors == n)
 ```

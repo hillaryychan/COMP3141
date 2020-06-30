@@ -109,7 +109,8 @@ where
 ```
 
 The above implementation is *ugly*  and we can use a data type to simplify this:  
-`newtype State s a =` is a **procedure** that, manipulating some state of type `s` returns `a`
+`newtype State s a =` is a **procedure** that, manipulating some state of type `s` returns `a`.  
+*By **procedure**, we mean the procedural programming we are usually used to in a language like C*
 
 State operations:
 

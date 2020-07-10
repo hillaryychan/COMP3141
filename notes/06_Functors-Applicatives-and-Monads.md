@@ -159,6 +159,22 @@ u <*> pure y = pure ($ y) <*> u
 pure (.) <*> u <*> v <*> w = u <*> (v <*> w)
 ```
 
+Proving the Functor Laws hold if we implement `fmap` as `pure f <*> x`
+
+``` hs
+-- Functor laws:
+-- 1. fmap id x = x
+-- 2. fmap f (fmap g x) = fmap (f . g) x
+
+-- Proof:
+-- 1) pure id <*> x == x -- true by Identity law
+--
+-- 2) pure f <*> (pure g <*> x)
+--      == pure (.) <*> pure f <*> pure g <*> x -- Composition
+--      == pure ((.) f) <*> pure g <*> x        -- Homomorphism
+--      == pure (f.g) <*> x                     -- Homomorphism
+```
+
 ### Applicative Instances
 
 #### Applicative Lists
@@ -172,7 +188,71 @@ There are **two** ways to implement `Applicative` for lists:
 1. Apply each of the given functions to each of the arguments, concatenating all the results
 2. Apply each function in the list of functions to the corresponding value in the list of arguments. (This one is put in a `newtype` `ZipList` in the Haskell standard library)
 
-TODO applicative list example
+``` hs
+pureZ :: a -> [a]
+pureZ a = a : pureZ a
+
+pureC :: a -> [a]
+pureC a = [a]
+
+applyListZ :: [a -> b] -> [a] -> [b]
+applyListZ (f:fs) (x:xs) = f x ++ applyListZ fs xs
+applyListZ [] _ = []
+applyListZ _ [] = []
+
+applyListC :: [a -> b] -> [a] -> [b]
+applyListC (f : fs) args = map f args ++ map fs args
+applyListC [] args = []
+```
+
+#### Other Instances
+
+* QuickCheck generators: `Gen`  
+
+    ``` hs
+    data Concrete = C [Char] [Char] deriving (Show, Eq)
+
+    instance Arbitrary Concrete where
+      arbitrary = C <$> arbitrary <*> arbitrary
+    ```
+
+* Functions: `((->) x)`
+
+    ``` hs
+    instance Applicative ((->) x) where
+      pure :: a -> x -> a
+      pure a x = a
+
+   -- (<*>) :: (->) x (a -> b) -> (->) x a -> (->) x b
+   -- which is equivalent to
+      (<*>) :: (x -> a -> b) -> (x -> a) -> (x -> b)
+      (<*>) xab xa x = xab x (xa x)
+    ```
+
+* Tuples: `((,) x)`
+
+    ``` hs
+    instance Monoid x => Applicative ((,) x) where
+      pure :: a -> (x, a)
+      pure a = (mempty , a)
+
+      (<*>) :: (x,a -> b) -> (x, a) -> (x, b)
+      (<*>)(x, f) (x', a) = (x <> x' , f a)
+    ```
+
+* `IO` and `State s`
+
+    ``` hs
+    instance Applicative IO where
+    pure :: a -> IO a
+    pure a = pure a
+
+    (<*>) :: IO (a->b) -> IO a -> IO b
+    pf (<*>) pa = do
+      f <- pf
+      a <- pa
+      pure (f a)
+    ```
 
 ## Monads
 
@@ -245,9 +325,43 @@ x >>= \_ -> do y
 
 Roll two 6-sided dice, if the difference is < 2, re-roll the second die. Final score is the difference of the two die. What score is most common?
 
+``` hs
+roll :: [Int]
+roll = [1,2,3,4,5,6]
+
+diceGame = do
+  d1 <- roll
+  d2 <- roll
+  if (abs (d1 - d2) < 2) then do
+    d2' <- roll
+    pure (abs (d1 - d2'))
+  else
+    pure (abs (d1 - d2))
+
+map length $ group sort diceGame
+-- gives [16,28,30,22,14,6] meaning 2 is the most common score
+```
+
 #### Partial Functions
 
-We have a list of student names in a database of type [(ZID, Name)]. Given a list of zID’s, return a Maybe [Name], where Nothing indicates that a zID could not be found.
+We have a list of student names in a database of type `[(ZID, Name)]`. Given a list of zID’s, return a `Maybe [Name]`, where `Nothing` indicates that a zID could not be found.
+
+``` hs
+db :: [(ZID, Name)]
+db = [(3253158, "Liam")
+      (8888888, "Rich")
+      (4444444, "Mort")]
+
+studentNames :: [ZID] -> Maybe [Name]
+studentNames [] = pure []
+studentNames (z:zs) = do
+  n <- lookup z db
+  ns <- studentNames zs
+  pure (n:ns)
+
+-- can also be written as
+studentNames (z:zs) = (:) <$> lookup z db <*> studentNames zs
+```
 
 #### Arbitrary Instances
 
@@ -255,4 +369,23 @@ Define a Tree type and a generator for search trees:
 
 ``` hs
 searchTrees :: Int -> Int -> Generator Tree
+```
+
+``` hs
+data Tree a = Leaf | Branch a (Tree a) (Tree a) deriving (Show, Eq)
+
+instance Arbitrary (Tree Int) where
+  arbitrary = do
+    mn <- (arbitrary :: Gen Int)
+    Positive delta <- arbitrary
+    let mx = mn + delta
+    searchTree mn mx
+  where
+    searchTree :: Int -> Int -> Gen (Tree Int)
+    searchTree mn mx | mn >= mx   = pure Leaf
+                     | otherwise = do
+                           v <- choose (mn,mx)
+                           l <- searchTree mn v
+                           r <- searchTree (v+1) mx
+                           pure (Branch v l r)
 ```

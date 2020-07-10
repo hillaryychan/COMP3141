@@ -321,6 +321,7 @@ A **monoid** is a semigroup (S, •) equipped with a special ***identity element
 ``` hs
 class (Semigroup a) => Monoid a where
   mempty :: a
+  -- where mempty is the identity element
 ```
 
 For colours, the identity element is transparent black:

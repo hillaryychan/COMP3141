@@ -1,7 +1,7 @@
 # Functors, Applicatives, and Monads
 
 These are common abstractions used in functional programming and, increasingly, in imperative programming as well.  
-These abstractions are made concrete into genuine type classes in Haskell, where they are often left as mere "design patterns" in other programming languages.
+These abstractions are made concrete into actual type classes in Haskell, where they are often left as mere "design patterns" in other programming languages.
 
 ## Recap
 
@@ -9,7 +9,8 @@ These abstractions are made concrete into genuine type classes in Haskell, where
 
 Recall that terms in the type level language of Haskell are given **kinds**. The most basic kind written as `*`.  
 Types such as `Int` and `Bool` have kind `*`  
-Seeing as `Maybe` is parameterised by one argument, `Maybe` has kind `* -> *`: given a type (e.g. `Int`) it will return a type `Maybe Int`.
+Seeing as `Maybe` is parameterised by one argument, `Maybe` has kind `* -> *`: given a type (e.g. `Int`) it will return a type `Maybe Int`.  
+The kind of `State` is `* -> * -> *` for its state, return value, and ultimate return value.
 
 ### Functors
 
@@ -29,8 +30,37 @@ We've seen instances for lists, `Maybe`, tuples and functions.
 Other instances include:
 
 * `IO`
+
+    ``` hs
+    ioMap :: (a -> b) -> IO a -> IO b
+    ioMap f act = do
+      a <- act
+      pure (f a)
+    ```
+
 * `State s`
-* `Gen`
+
+    ``` hs
+    stateMap :: (a -> b) -> State a -> State b
+    stateMap f act = do
+      a <- act
+      pure (f a)
+    ```
+
+* `Gen` - recall `Gen a` is a random generator of values of type `a`
+
+    ``` hs
+    sortedLists :: (Arbitrary a, Ord a) => Gen [a]
+    sortedLists = fmap sort (listOf arbitrary)
+    -- listOf :: Gen a -> Gen [a]
+    ```
+
+    ``` hs
+    monadMap :: Monad m => (a -> b) -> m a -> m b
+    monadMap f act = do
+      a <- act
+      pure (f a)
+    ```
 
 ### QuickCheck Generators
 
@@ -49,3 +79,180 @@ toString :: Int -> String
 And we want a generator for `String` (i.e `Gen String`) that is the result of applying `toString` to arbitrary `Int`s, then ***we use `fmap`***
 
 ## Applicative Functors
+
+Suppose we want to lookup a student's zID and program code using these functions:
+
+``` hs
+lookupID :: Name -> Maybe ZID
+lookupProgram :: Name -> Maybe Program
+```
+
+and we had a function
+
+``` hs
+makeRecord :: ZID -> Program -> StudentRecord
+```
+
+We can combine these functions to get a function of type `Name -> Maybe StudentRecord`.  
+We need a function to take:
+
+* a `Maybe`-wrapped function `Maybe (Program -> StudentRecord)`
+* a `Maybe`-wrapped argument `Maybe Program`
+
+And apply the function to the argument, giving us a result of type `Maybe StudentRecord`
+
+This is encapsulated by a subclass of `Functor` called `Applicative`:
+
+``` hs
+class Functor f => Applicative f where
+  pure :: a -> f a
+  (<*>) :: f (a -> b) -> f a -> f b
+```
+
+`Maybe` is an instance, so we can use this for `lookupRecord`
+
+``` hs
+lookupRecord' :: Name -> Maybe StudentRecord
+lookupRecord' n = let zid     = lookupID n
+                      program = lookupProgram n
+                  in fmap makeRecord zid <*> program
+               -- or pure makeRecord <*> zid <*> program
+```
+
+In general, we can take a regular function application: `f a b c d`  
+and apply that function to `Maybe` (or other `Applicative`) arguments using this pattern (where `<*>` is left-associative)  
+
+``` hs
+pure f <*> ma <*> mb <*> mc <*> md
+```
+
+All law-abiding instances of `Applicative` are also instance of `Functor`, by defining:
+
+``` hs
+fmap f x = pure f <*> x
+```
+
+Sometimes this is written as an infix operator, `<$>`, which allows us to write:
+
+``` hs
+pure f <*> ma <*> mb <*> mc <*> md
+-- as
+f <$> ma <*> mb <*> mc <*> md
+```
+
+### Applicative Laws
+
+There are 4 applicative laws:  
+These laws are not expected to be memorised, but should be paid attention to when defining instances.
+
+``` hs
+-- 1. Identity
+pure id <*> v = v
+
+-- 2. Homomorphism
+pure f <*> pure x = pure (f x)
+
+-- 3. Interchange
+u <*> pure y = pure ($ y) <*> u
+
+-- 4. Composition
+pure (.) <*> u <*> v <*> w = u <*> (v <*> w)
+```
+
+### Applicative Instances
+
+#### Applicative Lists
+
+There are **two** ways to implement `Applicative` for lists:
+
+``` hs
+(<*>) :: [a -> b] -> [a] -> [b]
+```
+
+1. Apply each of the given functions to each of the arguments, concatenating all the results
+2. Apply each function in the list of functions to the corresponding value in the list of arguments. (This one is put in a `newtype` `ZipList` in the Haskell standard library)
+
+TODO applicative list example
+
+## Monads
+
+**Functors** are types for containers where we can `map` pure functions on their contents.  
+**Applicative Functors** are types where we can combine *n* containers with a *n*-ary function.
+
+The last and most commonly-used higher-kinded abstraction in Haskell programming is the `Monad`. **Monads** are type `m`, where we can ***sequentially compose*** functions of the form `a -> m -> b`
+
+``` hs
+class Applicative m => Monad m where
+  (>>=) :: m a -> (a -> m b) -> m b
+```
+
+Sometimes in old documentation the function `return` is included here, but it is just an alias for `pure`. It has nothing to do with `return` as in C/Java/Python.
+
+Consider:
+
+* `Maybe`
+* Lists
+* `(x, ->)` (the **Reader** monad)
+* `(x,)` (the **Write** monad, assuming `Monoid` instance for `x`)
+* `Gen`
+* `IO, State s` etc.
+
+We can define a composition operator with `(>>==)`:
+
+``` hs
+(<=<) :: (b -> m c) -> (a -> m b) -> (a -> m c)
+(f <=< g) x = g x >>= f
+```
+
+**Monad Laws**:
+
+``` hs
+f <=< (g <=< x) == (f <=< g) <=< x -- associativity
+pure <=< f      == f               -- left identity
+f <=< pure      == f               -- right identity
+```
+
+These are similar to the monoid laws, generalised for multiple types inside the monad.  
+This sort of structure is called a **category** in mathematics.
+
+All `Monad` instances give rise to an `Applicative` instance, because we can define `<*>` in terms of `>>=`.
+
+``` hs
+mf <*> mx = mf >>= \f -> mx >>= \x -> pure (f x)
+```
+
+This implementation is already provided for `Monads` as the `ap` function in `Control.Monad`
+
+### `do` Notation
+
+Working directly with monad functions can be unpleasant, so Haskell has some notation to increase niceness:
+
+``` hs
+do x <- y
+   z
+-- becomes
+y >>= \x -> do z
+
+do x
+   y
+-- becomes
+x >>= \_ -> do y
+```
+
+### Examples
+
+#### Dice Rolls
+
+Roll two 6-sided dice, if the difference is < 2, re-roll the second die. Final score is the difference of the two die. What score is most common?
+
+#### Partial Functions
+
+We have a list of student names in a database of type [(ZID, Name)]. Given a list of zID’s, return a Maybe [Name], where Nothing indicates that a zID could not be found.
+
+#### Arbitrary Instances
+
+Define a Tree type and a generator for search trees:
+
+``` hs
+searchTrees :: Int -> Int -> Generator Tree
+```

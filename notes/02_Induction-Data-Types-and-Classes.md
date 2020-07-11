@@ -163,7 +163,7 @@ data PictureObject = Path    [Point]        Colour LineStyle
 type Picture = [PictureObject]
 ```
 
-Here, type creates a ***type alias*** which provides only an alternate name which refers to an existing type.
+Here, `type` creates a ***type alias*** which provides only an alternate name which refers to an existing type.
 
 ### Recursive and Parametric Types
 
@@ -182,7 +182,7 @@ data List a  = Nil | Cons a (list a)
 We can even define natural numbers, where 2 is encoded as `Succ (Succ Zero)`:
 
 ``` hs
-data Nat= Zero | Succ Nat
+data Nat = Zero | Succ Nat
 
 add :: Nat -> Nat -> Nat
 add Zero     n = n
@@ -241,7 +241,7 @@ To eliminate partiality, we must either:
 ## Type Classes
 
 We've seen functions that work on multiple types (e.g. `compare`, `(==)`, `(+)`, `show`) and their corresponding constraints on type variables (e.g `Ord`, `Eq`, `Num` and `Show`).  
-These constraints are called **type classes**, and can be thought of as a *set of types* for which certain operations are implemented.
+These constraints are called **type classes**, and can be thought of as a ***set of types*** for which certain operations are implemented.
 
 Type classes describe a set of behaviours that can be implemented for any type. A function or type class inheritance (i.e `deriving (Show)`) can operate on a type variable constrained by a type class instead of a concrete type. It is similar to an OOP interface
 
@@ -477,7 +477,10 @@ f = maybeMap toString . tryNumber
 
 ### Functors Explained
 
-All these functions (i.e `maybeMap`, `map`) are in the interface of a single type class called `Functor`
+All these functions (i.e `maybeMap`, `map`) are in the interface of a single type class called `Functor`.
+
+A **`Functor`** is a type class that defines a signature for a method over a *"wrapped"* value (e.g. `Maybe`, lists), where a *"wrapped"* value is a type that takes types like `Int`, `Bool`, `Char` etc. as a parameter. For example, `Maybe` takes a type parameter (`Int`, `Bool`, `Char` etc.) to become `Maybe Int`, `Maybe Bool`, `Maybe Char`; likewise lists `[ ]` takes a type parameter to become `[Int]`, `[Bool]`, `[Char]`.  
+A functor essentially applies a function to a *"wrapped"* value and returns a *"wrapped"* value.
 
 ``` hs
 class Functor f where
@@ -489,7 +492,22 @@ Unlike previous type classes we've seen like `Ord` and `Semigroup`, `Functor` is
 Instances for:
 
 * lists
+
+    ``` hs
+    instance Functor [ ] where
+      fmap :: (a -> b) -> [a] -> [b]
+      fmap = map
+    ```
+
 * `Maybe`
+
+    ``` hs
+    instance Functor Maybe where
+      fmap :: (a -> b) -> Maybe a -> Maybe b
+      fmap f (Just a) = Just (f a)
+      fmap f Nothing = Nothing
+    ```
+
 * Tuples
 
     ``` hs
@@ -500,7 +518,7 @@ Instances for:
     instance Functor ((,) x) where
     --  fmap :: (a -> b) -> f a -> f b
     --  fmap :: (a -> b) -> (,) x a -> (,) x b
-    --  fmap :: (a -> b) -> (x, a) -> (x, b)
+      fmap :: (a -> b) -> (x, a) -> (x, b)
       fmap f (x,a) = (x, f a)
     -- the functor instance for tuples just applies
     -- the function to the right-hand side of the tuple
@@ -516,17 +534,12 @@ Instances for:
     instance Functor ((->) x) where
     --  fmap :: (a -> b) -> f a -> f b
     --  fmap :: (a -> b) -> (->) x a -> (->) x b
-    --  fmap :: (a -> b) -> (x -> a) -> (x -> b)
+      fmap :: (a -> b) -> (x -> a) -> (x -> b)
+      fmap ab xa x = ab (xa x)
+      -- or
       fmap = (.)
     -- the functor instance of (->) simply composes functions
     ```
-
-You can think of a functor as a way to define behaviour of a type when given to `fmap`:
-
-1. Define a type (e.g. `Type_from_step_1`) that is able to be mapped over
-2. Use `instance Functor Type_from_step_1 where ...` to define the behaviour that should occur when we call `fmap` on a variable with the given `Type_from_step_1`.
-
-Note: `type_from_step_1` must take a type parameter. For example, `Maybe` takes a type parameter (`Int`, `Bool`, `Char` etc.) to become `Maybe Int`, `Maybe Bool`, `Maybe Char` etc. This is what is meant by "kinds".
 
 ### Functor Laws
 

@@ -109,6 +109,8 @@ class Functor f => Applicative f where
   (<*>) :: f (a -> b) -> f a -> f b
 ```
 
+Applicatives allow us to *"wrap"* functions just like how we can *"wrap"* values in `Functor`
+
 `Maybe` is an instance, so we can use this for `lookupRecord`
 
 ``` hs
@@ -138,6 +140,13 @@ Sometimes this is written as an infix operator, `<$>`, which allows us to write:
 pure f <*> ma <*> mb <*> mc <*> md
 -- as
 f <$> ma <*> mb <*> mc <*> md
+```
+
+So:
+
+``` hs
+fmap f x == pure f <*> x
+         == f <$> x
 ```
 
 ### Applicative Laws
@@ -207,6 +216,24 @@ applyListC [] args = []
 
 #### Other Instances
 
+* `Maybe`
+
+    ``` hs
+    instance Applicative Maybe where
+      pure x =  Just x
+      Just f <*> Just x = Just (f x)
+      _      <*> _      = Nothing
+    ```
+
+* Lists
+
+    ``` hs
+    instance Applicative [ ] where
+      pure x = [x]
+      [] <*> ys = []
+      (f:fs) <*> xs = map f xs ++ (fs <*> xs)
+    ```
+
 * QuickCheck generators: `Gen`  
 
     ``` hs
@@ -229,7 +256,7 @@ applyListC [] args = []
       (<*>) xab xa x = xab x (xa x)
     ```
 
-* Tuples: `((,) x)`
+* Tuples: `((,) x)` -  it is necessary for `x` to be a `Monoid`
 
     ``` hs
     instance Monoid x => Applicative ((,) x) where
@@ -271,13 +298,32 @@ Sometimes in old documentation the function `return` is included here, but it is
 Consider:
 
 * `Maybe`
+
+    ``` hs
+    instance Monad Maybe where
+      Just x >>= f  = f x
+      Nothing >>= f = Nothing
+    ```
+
 * Lists
-* `(x, ->)` (the **Reader** monad)
+
+    ``` hs
+    instance Monad [ ] where
+      xs >>= each = concatMap each xs
+    ```
+
+* `(x ->)` (the **Reader** monad)
+
+    ``` hs
+    instance Monad ((->) x) where
+      (xa >>= axb) = \x -> axb (xa x) x
+    ```
+
 * `(x,)` (the **Write** monad, assuming `Monoid` instance for `x`)
 * `Gen`
 * `IO, State s` etc.
 
-We can define a composition operator with `(>>==)`:
+We can define a composition operator with `(>>=)`:
 
 ``` hs
 (<=<) :: (b -> m c) -> (a -> m b) -> (a -> m c)
@@ -389,3 +435,11 @@ instance Arbitrary (Tree Int) where
                            r <- searchTree (v+1) mx
                            pure (Branch v l r)
 ```
+
+## Resources
+
+Stuff that helped me understand Functors, Applicatives and Monads:
+
+* [Functors](https://youtu.be/xCut-QT2cpI)
+* [Functor Applicatives](https://youtu.be/CNOff5LPKQI)
+* [Monads](https://youtu.be/f1Y7vLakykk)

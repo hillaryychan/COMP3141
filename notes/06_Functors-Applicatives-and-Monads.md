@@ -27,6 +27,40 @@ class Functor f where
 > 2. `fmap f . fmap g = fmap (f . g)`
 
 We've seen instances for lists, `Maybe`, tuples and functions.  
+
+* lists
+
+    ``` hs
+    instance Functor [ ] where
+      fmap :: (a -> b) -> [a] -> [b]
+      fmap = map
+    ```
+
+* `Maybe`
+
+    ``` hs
+    instance Functor Maybe where
+      fmap :: (a -> b) -> Maybe a -> Maybe b
+      fmap f (Just a) = Just (f a)
+      fmap f Nothing = Nothing
+    ```
+
+* Tuples
+
+    ``` hs
+    instance Functor ((,) x) where
+      fmap :: (a -> b) -> (x, a) -> (x, b)
+      fmap f (x,a) = (x, f a)
+    ```
+
+* Functions
+
+    ``` hs
+    instance Functor ((->) x) where
+      fmap :: (a -> b) -> (x -> a) -> (x -> b)
+      fmap ab xa x = ab (xa x)
+    ```
+
 Other instances include:
 
 * `IO`

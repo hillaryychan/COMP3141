@@ -14,7 +14,7 @@ The kind of `State` is `* -> * -> *` for its state, return value, and ultimate r
 
 ### Functors
 
-Recall the type class defined over type constructors is called **`Functor`**
+Recall the type class defined over type constructors is called **`Functor`**. Functor applies a pure function (via `fmap`) to all the values that the type constructor contains or produces.
 
 ``` hs
 class Functor f where
@@ -81,7 +81,7 @@ Other instances include:
       pure (f a)
     ```
 
-* `Gen` - recall `Gen a` is a random generator of values of type `a`
+* `Gen` - recall `Gen a` is equivalent to a random generator of values of type `a`
 
     ``` hs
     sortedLists :: (Arbitrary a, Ord a) => Gen [a]
@@ -89,12 +89,12 @@ Other instances include:
     -- listOf :: Gen a -> Gen [a]
     ```
 
-    ``` hs
-    monadMap :: Monad m => (a -> b) -> m a -> m b
-    monadMap f act = do
-      a <- act
-      pure (f a)
-    ```
+``` hs
+monadMap :: Monad m => (a -> b) -> m a -> m b
+monadMap f act = do
+  a <- act
+  pure (f a)
+```
 
 ### QuickCheck Generators
 
@@ -117,6 +117,10 @@ And we want a generator for `String` (i.e `Gen String`) that is the result of ap
 Suppose we want to lookup a student's zID and program code using these functions:
 
 ``` hs
+type Name = String
+type ZID = Int
+data Program = COMP | SENG | BINF CENG
+
 lookupID :: Name -> Maybe ZID
 lookupProgram :: Name -> Maybe Program
 ```
@@ -124,6 +128,7 @@ lookupProgram :: Name -> Maybe Program
 and we had a function
 
 ``` hs
+type StudentRecord = (ZID, Program)
 makeRecord :: ZID -> Program -> StudentRecord
 ```
 
@@ -141,6 +146,7 @@ This is encapsulated by a subclass of `Functor` called `Applicative`:
 class Functor f => Applicative f where
   pure :: a -> f a
   (<*>) :: f (a -> b) -> f a -> f b
+  -- you can read <*> as 'apply', where we 'apply' the lhs to rhs
 ```
 
 Applicatives allow us to *"wrap"* functions just like how we can *"wrap"* values in `Functor`
@@ -155,11 +161,31 @@ lookupRecord' n = let zid     = lookupID n
                -- or pure makeRecord <*> zid <*> program
 ```
 
+If we were to make some changes such that:
+
+``` hs
+type StudentRecord = (ZID, Program, Name)
+makeRecord :: ZID -> Program -> Name -> StudentRecord
+```
+
+we could do this instead:
+
+``` hs
+lookupRecord' :: Name -> Maybe StudentRecord
+lookupRecord' n = let zid     = lookupID n
+                      program = lookupProgram n
+                  in fmap makeRecord zid <*> program <*> pure n
+               -- or pure makeRecord <*> zid <*> program <*> pure n
+               -- where pure n will give us a Maybe Name
+```
+
 In general, we can take a regular function application: `f a b c d`  
-and apply that function to `Maybe` (or other `Applicative`) arguments using this pattern (where `<*>` is left-associative)  
+and apply that function to `Maybe` (or other `Applicative`) arguments using this pattern (where `<*>` is left-associative)
 
 ``` hs
 pure f <*> ma <*> mb <*> mc <*> md
+-- pure f creates a Maybe f
+-- which can be applied to ma, which can then be applied to mb and so on ...
 ```
 
 All law-abiding instances of `Applicative` are also instance of `Functor`, by defining:
@@ -197,9 +223,13 @@ pure f <*> pure x = pure (f x)
 
 -- 3. Interchange
 u <*> pure y = pure ($ y) <*> u
+-- if you have a wrapped function u and you apply it to a pure arguments,
+-- its like applying the application operator with the pure argument to the wrapped function
 
 -- 4. Composition
 pure (.) <*> u <*> v <*> w = u <*> (v <*> w)
+-- if you compose u and v, then apply it to w,
+-- it is the same as u of v applied to w
 ```
 
 Proving the Functor Laws hold if we implement `fmap` as `pure f <*> x`
@@ -213,7 +243,7 @@ Proving the Functor Laws hold if we implement `fmap` as `pure f <*> x`
 -- 1) pure id <*> x == x -- true by Identity law
 --
 -- 2) pure f <*> (pure g <*> x)
---      == pure (.) <*> pure f <*> pure g <*> x -- Composition
+--      == pure (.) <*> pure f <*> pure g <*> x -- Composition^
 --      == pure ((.) f) <*> pure g <*> x        -- Homomorphism
 --      == pure (f.g) <*> x                     -- Homomorphism
 ```
@@ -297,8 +327,10 @@ applyListC [] args = []
       pure :: a -> (x, a)
       pure a = (mempty , a)
 
-      (<*>) :: (x,a -> b) -> (x, a) -> (x, b)
-      (<*>)(x, f) (x', a) = (x <> x' , f a)
+      (<*>) :: (x, a -> b) -> (x, a) -> (x, b)
+      (<*>) (x, f) (x', a) = (x <> x' , f a)
+      -- where (<>) :: Monoid m => m -> m -> m
+      --       (<>) = mappend
     ```
 
 * `IO` and `State s`
@@ -308,7 +340,7 @@ applyListC [] args = []
     pure :: a -> IO a
     pure a = pure a
 
-    (<*>) :: IO (a->b) -> IO a -> IO b
+    (<*>) :: IO (a -> b) -> IO a -> IO b
     pf (<*>) pa = do
       f <- pf
       a <- pa

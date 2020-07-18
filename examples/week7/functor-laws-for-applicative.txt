@@ -1,0 +1,16 @@
+fmap f x = pure f <*> x
+
+-- The two functor laws are:
+1. fmap id x == x
+2. fmap f (fmap g x) == fmap (f.g) x
+
+
+-- Proof:
+
+1) pure id <*> x == x -- true by Identity law
+
+2) pure f <*> (pure g <*> x)
+     == pure (.) <*> pure f <*> pure g <*> x --Composition<
+     == pure ((.) f) <*> pure g <*> x        --Homomorphism
+     == pure (f.g) <*> x                     --Homomorphism
+

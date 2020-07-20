@@ -8,3 +8,4 @@
 4. [Data Invariants, Abstraction and Refinement](notes/04_Data-Invariants-Abstraction-and-Refinement.md)
 5. [Effects and State](notes/05_Effects-and-State.md)
 6. [Functors, Applicatives, and Monads](notes/06_Functors-Applicatives-and-Monads.md)
+7. [Static Assurances with Types](notes/07_Static-Assurances-with-Types.md)

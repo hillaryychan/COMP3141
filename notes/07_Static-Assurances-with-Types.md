@@ -153,4 +153,232 @@ data Expr = BConst Bool
 data Value = BVal Bool | IVal Int
 ```
 
-we can define an expression calculator
+If we were to define an expression calculator:
+
+``` hs
+data Expr t = BConst Bool
+            | IConst Int
+            | Times (Expr Int) (Expr Int)
+            | Less (Expr Int) (Expr Int)
+            | And (Expr Bool) (Expr Bool)
+            | If (Expr Bool) (Expr t) (Expr t)
+            deriving (Show, Eq)
+data Value = BVal Bool | IVal Int
+             deriving (Show, Eq)
+
+eval :: Expr -> Value
+eval (BConst b) = BVal b
+eval (IConst i) = IVal i
+eval (Times e1 e2) = case (eval e1, eval e2) of
+                       (IVal i1, IVal i2) -> IVal (i1 * i2)
+eval (Less e1 e2)  = case (eval e1, eval e2) of
+                       (IVal i1, IVal i2) -> BVal (i1 < i2)
+eval (And e1 e2)  = case (eval e1, eval e2) of
+                       (BVal b1, BVal b2) -> BVal (b1 && b2)
+eval (If ec et ee) =
+  case eval ec of
+    BVal True  -> eval et
+    BVal False -> eval ee
+```
+
+The `eval` function is ***partial*** and undefined for input expressions that are not well-typed, like:
+
+``` hs
+And (IConst 3) (BConst True)
+```
+
+We can try adding a phantom parameter to `Expr`, and defining typed constructors with precise types:
+
+``` hs
+data Expr t = -- same as before
+
+bConst :: Bool -> Expr Bool
+bConst = BConst
+iConst :: Int -> Expr Int
+iConst = IConst
+times :: Expr Int -> Expr Int -> Expr Int
+times = Times
+less :: Expr Int -> Expr Int -> Expr Bool
+less = Less
+and :: Expr Bool -> Expr Bool -> Expr Bool
+and = And
+if' :: Expr Bool -> Expr a -> Expr a -> Expr a
+if' = If
+```
+
+This makes invalid expressions into type errors:
+
+``` hs
+-- couldn't match Int and Bool
+and (iConst 3) (bConst True)
+```
+
+However inside `eval :: Expr t -> t`, Haskell type checker cannot be sure that we used our typed constructors so, in e.g. `IConst` case:
+
+``` hs
+eval :: Expr t -> t
+eval (IConst i) = i -- type error
+```
+
+We are unable to tell that type `t` is definitely `Int`
+
+### Generalised Algebraic Datatypes
+
+**Generalised Algebraic Datatypes (GADTs)** is an extension to Haskell that, among other things, allows data types to be specified by writing the types of their constructors:
+
+``` hs
+{-# LANGUAGE GADTs, KindSignatures #-}
+-- Unary natural numbers, e.g. 3 is S (S (S Z))
+data Nat = Z | S Nat
+-- is the same as
+data Nat :: * where
+  Z :: Nat
+  S :: Nat -> Nat
+```
+
+When combined with the type *indexing* trick of phantom types, it becomes very powerful
+
+#### Expressions as a GADT
+
+``` hs
+data Expr :: * -> * where
+  BConst :: Bool -> Expr Bool
+  IConst :: Int -> Expr Int
+  Times :: Expr Int -> Expr Int -> Expr Int
+  Less :: Expr Int -> Expr Int -> Expr Bool
+  And :: Expr Bool -> Expr Bool -> Expr Bool
+  If :: Expr Bool -> Expr a -> Expr a -> Expr a
+```
+
+Now there is only **one** set of **precisely-typed** constructors
+
+Inside `eval` now, the Haskell type checker accepts our previously problematic case:
+
+``` hs
+eval :: Expr t -> t
+eval (IConst i) = i -- OK now
+```
+
+GHC now knows that if we have `IConst`, the type `t` must be `Int`
+
+#### Lists as a GADT
+
+We could define our own list type using GADT syntax as follows:
+
+``` hs
+data List (a :: *) :: * where
+  Nil :: List a
+  Cons :: a -> List a -> List a
+```
+
+But, if we define head (`hd`) and tail (`tl`) functions, they are partial:
+
+``` hs
+hd (Cons x xs) = x
+tl (Cons x xs) = xs
+```
+
+We will constrain the domain of these functions by tracking the ***length*** of the list on the ***type level*** by creating Vectors (not the usual vectors)
+
+As before define a natural number kind to use on the type level:
+
+``` hs
+data Nat = Z | S Nat
+```
+
+Now our length-indexed list can be defined, called a `Vec`:
+
+``` hs
+data Vec (a :: *) :: Nat -> * where
+  Nil :: Vec a Z
+  Cons :: a -> Vec a n -> Vec a (S n)
+```
+
+Now `hd` and `tl` can be total:
+
+``` hs
+hd :: Vec a (S n) -> a
+hd (Cons x xs) = x
+tl :: Vec a (S n) -> a n
+tl (Cons x xs) = xs
+```
+
+Our map for vectors is as follows:
+
+``` hs
+mapVec :: (a -> b) -> Vec a n -> Vec b n
+mapVec f Nil = Nil
+mapVec f (Cons x xs) = Cons (f x) (mapVec f xs)
+```
+
+Using this type, it's impossible to write a `mapVec` function that changes the length of the vector.  
+**Properties are verified by the compiler**!
+
+### Trade-offs
+
+The benefits of this extra static checking are obvious, however:
+
+* It can be difficult to convince the Haskell type checker that your code is correct, even when it is
+* Type-level encodings can make types more verbose and programs harder to understand
+* Sometimes excessively detailed types can make type-checking very slow, hindering productivity
+
+> **Pragmatism**
+> We should use type-based encodings only when the ***assurance advantages outweigh the clarity disadvantges***  
+> The typical use case for these richly-typed structures is to eliminate **partial fucntions** from our code base  
+> If we never use partial list functions, length-indexed vectors are not particularly useful
+
+## Type Families
+
+``` hs
+appendV :: Vec a m -> Vec a n -> Vec a ???
+```
+
+We cant to write `m + n` in the `???` above, but we do not have addition defined for kind `Nat`
+
+We can define a normal Haskell function easily though:
+
+``` hs
+plus :: Nat -> Nat -> Nat
+plus Z y = y
+plus (S x) y = S (plus x y)
+```
+
+This function is not applicable to **type-level** `Nat`s though; we need a **type-level function**
+
+Type level functions, also called **type-families**, are defined in Haskell like so:
+
+``` hs
+{-# LANGUAGE TypeFamilies #-}
+type family Plus (x :: Nat) (y :: Nat) :: Nat where
+  Plus Z     y = y
+  Plus (S x) y = S (Plus x y)
+```
+
+We can use our type family to define `appendV`:
+
+``` hs
+appendV :: Vec a m -> Vec a n -> Vec a (Plus m n)
+appendV Nil         ys = ys
+appendV (Cons x xs) ys = Cons x (appendV xs ys)
+```
+
+If we had implemented `Plus` by recursing on the second argument instead of the first:
+
+``` hs
+{-# LANGUAGE TypeFamilies #-}
+type family Plus (x :: Nat) (y :: Nat) :: Nat where
+  Plus' x Z     = x
+  Plus' x (S y) = S (Plus' x y)
+```
+
+The our `appendV` code would not type check:
+
+``` hs
+appendV :: Vec a m -> Vec a n -> Vec a (Plus' m n)
+appendV Nil         ys = ys
+appendV (Cons x xs) ys = Cons x (appendV xs ys)
+```
+
+**Why?** Consider the `Nil` case. We know `m = Z` and must show our desired return type `Plus' Z n` equals our given type `n`, but the fact is not immediately apparent from the equations.
+
+Note: this covers only a small part of the full power of type-based specifications

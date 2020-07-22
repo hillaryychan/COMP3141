@@ -149,7 +149,7 @@ class Functor f => Applicative f where
   -- you can read <*> as 'apply', where we 'apply' the lhs to rhs
 ```
 
-Applicatives allow us to *"wrap"* functions just like how we can *"wrap"* values in `Functor`. They can only be applied for higher-kinded types that already have `Functor` defined.
+Applicatives allow us to *"wrap"* functions just like how we can *"wrap"* values in `Functor`
 
 `Maybe` is an instance, so we can use this for `lookupRecord`
 
@@ -350,7 +350,8 @@ applyListC [] args = []
 ## Monads
 
 **Functors** are types for containers where we can `map` pure functions on their contents.  
-**Applicative Functors** are types where we can combine *n* containers with a *n*-ary function.  
+**Applicative Functors** are types where we can combine *n* containers with a *n*-ary function.
+
 The last and most commonly-used higher-kinded abstraction in Haskell programming is the `Monad`. **Monads** are type `m`, where we can ***sequentially compose*** functions of the form `a -> m -> b`
 
 ``` hs

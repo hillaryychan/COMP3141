@@ -17,7 +17,7 @@ Why functional programming and how does it help?
 1. **Close to Maths**: more abstract, less error-prone
 2. **Types**: act as doc., the compiler eliminates many errors
 3. **Property-based Testing**: QuickCheck (see [here](03_PBT-Lazy-Eval.md#property-based-testing))
-4. **Verification**: equational reasoning eases proofs (see [here](TODO))
+4. **Verification**: equational reasoning eases proofs
 
 ## Haskell
 
@@ -43,7 +43,7 @@ Features of the Haskell language:
       in if z then x else y     -- otherwise evaluate y
     ```
 
-    See more on lazy evaluation [here](./03_PBT-Lazy-Eval.md#lazy-evaluation)
+    See more on lazy evaluation [here](03_PBT-Lazy-Eval.md#lazy-evaluation)
 
 ### Currying
 

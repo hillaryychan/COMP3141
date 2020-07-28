@@ -26,10 +26,10 @@ Most static and all dynamic methods of assurance are **not** integrated into the
 
 Because type are integrated into the compiler, they cannot diverge from the source code. This means that type signatures are a kind of *machine-checked documentation* for your code.
 
-Types are the most widely used kind of formal verificaiton in programming today.
+Types are the most widely used kind of formal verification in programming today.
 
 * They are checked automatically by the compiler
-* They can be extended to encompass properties and proof systems with very high expressivity (see [here](TODO))
+* They can be extended to encompass properties and proof systems with very high expressivity (see [here](08_Theory-of-Types.md))
 * They are an **exhaustive** analysis
 
 We will be looking a techniques to encode various correctness conditions inside Haskell's type system
@@ -52,6 +52,8 @@ data UG -- empty type
 data PG
 data StudentID x = SID Int
 ```
+
+A **smart constructor** is a function that checks a condition in order to establish an invariant for a particular type. Since it is meant to replace a regular data constructor, we expect it to be *total*.
 
 We can define a **smart constructor** that specialises the type parameter:
 
@@ -232,8 +234,8 @@ We are unable to tell that type `t` is definitely `Int`
 data Nat = Z | S Nat
 -- is the same as
 data Nat :: * where
-  Z :: Nat
-  S :: Nat -> Nat
+  Z :: Nat        -- Zero
+  S :: Nat -> Nat -- Successor (+1)
 ```
 
 When combined with the type *indexing* trick of phantom types, it becomes very powerful

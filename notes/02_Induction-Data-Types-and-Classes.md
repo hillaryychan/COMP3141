@@ -553,4 +553,4 @@ The functor type class must obey two laws:
 In Haskell's type system, it's impossible to make a total `fmap` function that satisfies the first law but violated the second.  
 In other words, ***if one law is satisfied, then the other law is also satisfied***.
 
-This is due to [parametricity](TODO)
+This is due to [parametricity](08_Theory-of-Types.md#polymorphism-and-parametricity)

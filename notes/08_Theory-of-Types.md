@@ -285,6 +285,8 @@ Most common calculi corresponds to constructive logic, not classical one, so pri
 
 ## Algebraic Type Isomorphism
 
+### Semiring Structure
+
 These types we have defined form an algebraic structure called **commutative semiring**
 
 Laws for `Either` and `Void`:
@@ -304,9 +306,18 @@ Combining the two:
 * Distributivity: `(A, Either B C) ≃ Either (A, B) (A, C)`
 * Absorption: `(Void, A) ≃ Void`
 
-What does ≃ mean here? It's more than logical equivalence.
+What does ≃ mean here? It's more than logical equivalence.  
+We can consider two things to be equivalent if *the number of possible value in either of those types is them same*
 
-TODO
+``` hs
+| (A, B) | = |A| * |B| -- e.g |((), Bool)| = 2 and |(Bool, Bool)| = 4
+| Either A B | = A + B
+| () | = 1
+| Void | = 0
+| A -> B | = |B|^|A|
+```
+
+### Isomorphism
 
 To type `A` and `B` are **isomorphic**, written `A ≃ B`, if there exists a **bijection** between them. This means that for each value in A, we can find a unique value in B and vice versa.
 

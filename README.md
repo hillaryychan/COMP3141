@@ -9,3 +9,4 @@
 5. [Effects and State](notes/05_Effects-and-State.md)
 6. [Functors, Applicatives, and Monads](notes/06_Functors-Applicatives-and-Monads.md)
 7. [Static Assurances with Types](notes/07_Static-Assurances-with-Types.md)
+8. [Theory of Types](notes/08_Theory-of-Types.md)

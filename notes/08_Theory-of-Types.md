@@ -177,7 +177,7 @@ TrafficLight ≃ Either () (Either () ())
 
 Red   ≃ Left ()
 Amber ≃ Right (Left ())
-Green ≃ Right (Right (Left ()))
+Green ≃ Right (Right ())
 ```
 
 #### The Empty Type

@@ -47,12 +47,14 @@ Features of the Haskell language:
 
 ### Currying
 
-**Currying** is a technique of transforming a function that takes multiple arguments in a tuple as its argument (i.e `f :: a -> b -> c` in curried form is `g :: (a, b) -> c`) into a function that takes just a **single argument** and returns another function which accepts further arguments, one by one, that the original function would receive in the rest of that tuple
+**Currying** is the technique of converting a function that takes multiple arguments into a function that takes just a **single argument** and returns another function which accepts further arguments. If a function accepts *n* arguments and is applied fewer than *n* arguments, this is known as **partial application**
 
-In mathematics, we treat log10(x) and log2(x) and ln(x) as separate functions  
-In Haskell, we have a single `logBase` that, given a number *n*, produces a function for logn(x)
+For example, in mathematics, we treat *log10(x)* and *log2(x)* and *ln(x)* as separate functions.  
+In Haskell, we have a single `logBase` that, given a number *n*, produces a function for *logn(x)*.
 
 ``` hs
+logBase :: Double -> Double -> Double
+
 log10 :: Double -> Double
 log10 = logBase 10
 
@@ -63,10 +65,13 @@ ln :: Double -> Double
 ln = logBase 2.71828
 ```
 
-The type of `logBase` is `logBase :: Double -> (Double -> Double)`, where parentheses are optional.
+`logBase` takes in a `Double` and produces a function (`Double -> Double`). Its type is `logBase :: Double -> (Double -> Double)`, where parentheses are optional.
 
 Function application associates to the **left** in Haskell, so  
-logBase 2 64 ≡ (logBase 2) 64  
+
+``` hs
+logBase 2 64 ≡ (logBase 2) 64
+```
 
 Consider a function with many arguments:
 
@@ -76,12 +81,12 @@ f x1 x2 ... xn = y
 -- The type of f is
 f :: Int -> (Int -> ( ... (Int -> Bool)))
 -- Correspondingly, we should write
-(... ((f x1) x2) ...) xn = y
+(((f x1) x2) ...) xn = y
 ```
 
-Haskell is aware of this and applies implicit bracketing from
+Haskell is aware of this and applies implicit bracketing
 
-* the right-to-left for function type declarations
+* from ***right-to-left*** for ***function type*** declarations
 
     ``` hs
     f :: Int -> Int -> ... -> Int -> Bool
@@ -89,12 +94,12 @@ Haskell is aware of this and applies implicit bracketing from
     f :: Int -> (Int -> ( ... -> (Int -> Bool)))
     ```
 
-* the left-to-right for function application
+* from ***left-to-right*** for ***function application***
 
     ``` hs
     f x1 x2 ... xn
     -- means
-    (... ((f x1) x2) ...) xn
+    (((f x1) x2) ...) xn
     ```
 
 Functions of more than one argument are usually written this way in Haskell, but it is possible to use **tuples** instead
@@ -118,20 +123,20 @@ A **higher order function** is a function which takes another functions as argum
 
 ``` hs
 twice :: (a -> a) -> (a -> a)
-twice f a = f (f  a)
+twice f a = f (f  a)          -- (1)
 
 double :: Int -> Int
-double x = x * 2
+double x = x * 2              -- (2)
 
 quadruple :: Int -> Int
-quadruple = twice double
+quadruple = twice double      -- (3)
 
-{- twice twice double 3 = 48
-   (twice twice double) 3  - Equation 1
-   (twice (twice double)) 3
-   (twice quadruple) 3 - defn. of quadruple
-   quadruple (quadruple 3) - Equation 1
--}
+twice twice double 3
+= ((twice twice) double) 3  -- implicit function application bracketing
+= (twice (twice double)) 3  -- (1)
+= (twice quadruple) 3       -- (3)
+= quadruple (quadruple 3)   -- (1)
+= 48
 ```
 
 See [built-in higher order functions](#built-in-higher-order-functions) for more examples
@@ -162,7 +167,7 @@ Haskell makes extensive use of lists, constructed using square brackets. Each li
 [ (3,'a'), (4,'b') ] :: [(Int, Char)]
 ```
 
-Haskell lists are *singly-linked* lists. Lists can be constructed by so-called constructors. There are two of them:
+Haskell lists are *singly-linked* lists. Lists can be constructed by so-called ***constructors***. There are two of them:
 
 * `[]` - the empty list
 * `x:xs` - the ***colon*** (or ***prepend*** or ***cons***). The `:` prepends any element `x` to an already existing list `xs`  
@@ -193,7 +198,7 @@ map negate [3, -2, 4]       = [-3, 2, -4]
 map (\x -> x + 1) [1, 2, 3] = [2, 3, 4]
 ```
 
-The last example uses a ***anonymous functions*** to define a one-use function without giving it a name. The template for anonymous functions is: `(\<args> -> <expr>)`
+The last example uses an ***anonymous functions*** to define a one-use function without giving it a name. The template for anonymous functions is: `(\<args> -> <expr>)`
 
 The type of `map` is `map :: (a -> b) -> [a] -> [b]`
 
@@ -215,7 +220,8 @@ map toUpper "hi!" ≡ map toUpper (’h’:"i!")
 
 ### Function Composition
 
-We use **function composition** to combine our functions together. The mathematical (f ◦ g )(x) is written `(f . g) x` in Haskell.
+We use **function composition** to combine our functions together. The mathematical *(f ◦ g )(x)* is written `(f . g) x` in Haskell.  
+Given two functions `f` and `g`, `(f . g) x` produces a function which performs `g x` then `f` on an argument.
 
 In Haskell, operators like function composition are themselves functions. You can define your own operators
 
@@ -307,14 +313,14 @@ Various list functions that are built into Haskell's standard library
 
 #### Notation
 
-By default, alphanumerical functions use prefix notation. We can use **infix** notation by writing the function in backticks `` ` ``.
+By default, alphanumerical functions use ***prefix*** notation. We can use ***infix*** notation by writing the function in backticks `` ` ``.
 
 ``` hs
 div n 10 ≡ n `div` 10
 mod n 10 ≡ n `mod` 10
 ```
 
-Non-alphanumerical functions use infix notation. You can use prefix notation by enclosing the operator in brackets `()`.
+Non-alphanumerical functions use ***infix*** notation. You can use ***prefix*** notation by enclosing the operator in brackets `()`.
 
 ``` hs
 a + b ≡ (+) a b
@@ -396,7 +402,7 @@ Guards resemble `switch` statements where they fall through to the condition the
 
 #### Dollar Sign
 
-The `$` operator is an infix operator, which given a `a -> b` function and an `a` to apply it to, it gives us b.
+The `$` operator is an infix operator, which given a `a -> b` function and an `a` to apply it to, it gives us `b`.
 
 ``` hs
 ($) :: (a -> b) -> a -> b
@@ -404,8 +410,8 @@ The `$` operator is an infix operator, which given a `a -> b` function and an `a
 -- the following are equivalent
 f xs = map (\x -> x+1) (filter (\x -> x>1) xs)
 f xs = map (\x -> x+1) $ filter (\x -> x>1) xs
-
-f $ g = f (g x) = (f . g) x
+-- map (\x -> x+1)       :: [a] -> [a]
+-- filter (\x -> x>1) xs :: [a]
 ```
 
 It gives low, **right-associative** precedence
@@ -415,14 +421,14 @@ f $ g $ h x  =  f (g (h x))
 ```
 
 The difference between `($)` and `(.)`:  
-`(.)` composes functions, while `($)` applies functions
-`(.)` has higher precedence than `($)`
+`(.)` ***composes*** functions, while `($)` ***applies*** functions. The simplest way to think about this is `($)` requires an argument while `(.)` does not.  
+`(.)` has higher precedence than `($)`.
 
 `a $ b $ c $ d` is `a $ (b $ (c $ d))`, but `a . b . c $ d` is `(a . (b . c)) $ d`.
 
 #### Others
 
-By convention, names that start with a lowercase letter are ***type variables***, and names that start with an uppercase letter are concrete types
+By convention, names that start with a lowercase letter are ***type variables***, and names that start with an uppercase letter are ***concrete types***
 
 Comments can be written as follows:
 
@@ -479,4 +485,4 @@ On `ghci`/`stack repl`:
 
 * `:!` runs a given shell command e.g. `:! clear`
 
-Also see [week 1 wednesday code](../Wed-prac/week1.pdf).
+Also see [week 1 wednesday code](../examples/week1).

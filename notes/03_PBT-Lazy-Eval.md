@@ -2,11 +2,11 @@
 
 ## Free Properties
 
-Haskell already ensures certain properties automatically with its language desing and type system
+Haskell already ensures certain properties automatically with its language design and type system
 
 1. Memory is accessed where and when it is safe and permitted to be accessed (**memory safety**)
 2. Values of a certain static type will actually have that type at run time
-3. Programs that are well-typed will not leaded to undefined behaviour (**type safety**)  
+3. Programs that are well-typed will not lead to undefined behaviour (**type safety**)  
 i.e if a function of type `Int -> Int`, when given an `Int` it can only return an `Int`
 4. All functions are **pure**: Programs won't have side effects not declared in the type (**purely functional programming**)
 
@@ -63,7 +63,7 @@ PBT vs. Unit Testing:
 
 * **Less testing code** - properties are more compact than unit tests, and describe more test cases
 * PBT heavily depends on **test data generation**:
-    * Random inputs may not be as informative as hand-crafted inputs ⇒ ***use shrinking***
+    * Random inputs may not be as informative as hand-crafted inputs ⇒ use ***shrinking***
     * Random inputs may not cover all necessary corner cases ⇒ use a ***coverage checker***
     * Random inputs must be generated for user-defined types ⇒ QuickCheck includes functions to build ***custom generators***
 * By increasing the number of random inputs, we improve the code coverage in PBT
@@ -101,7 +101,7 @@ This include:
     instance (Arbitrary i, Testable o) => Testable (i -> o) ...
     ```
 
-Thus the type `[Int] -> [Int] -< Bool` (as used in `prop_reverseApp`) is `Testable`
+Thus the type `[Int] -> [Int] -> Bool` (as used in `[prop_reverseApp`](../examples/week3/basic-quickcheck.hs)) is `Testable`
 
 Let's look at an example. Is the function `divisible` reflexive (i.e `x % x == 0`)?
 
@@ -152,11 +152,11 @@ How good are your tests?
 
 Types of coverage:
 
-* **Entry/Exit Coverage** - all function *calls* executed
+* **Entry/Exit Coverage** - all function *calls* executed?
 * **Function Coverage** - all *functions* executed?
-* **Statement/Expression Coverage** - all *expressions* executed?
+* **Statement/Expression Coverage** - all *statements/expressions* executed?
 * **Branch/Decision Coverage** - all *conditional branches* executed?
-* **Path Coverage** - all *behaviours* executed?
+* **Path Coverage** - all possible *routes* executed?
 
 **Haskell Program Coverage** (or `hpc`) is a GHC-bundled tool to measure function, branch and expression coverage.
 
@@ -171,7 +171,7 @@ This will generate a `prog.tix` file
 
 ## Lazy Evaluation
 
-The following program crashes when given a large number due to **stack overflow**
+The following program crashes when given a large number due to **stack overflow** (the stack pointer exceeds the stack bound).
 
 ``` hs
 sumTo :: Integer -> Integer
@@ -179,7 +179,7 @@ sumTo 0 = 0
 sumTo n = sumTo (n-1) + n
 ```
 
-The following program now uses an accumulator value but *still* crashes when given a large number due to **space leak**.  
+The following program now uses an accumulator value but *still* crashes when given a large number due to **space leak** (when the program uses more memory than necessary for computation).
 
 ``` hs
 sumTo' :: Integer -> Integer -> Integer
@@ -208,9 +208,9 @@ sumTo' a n = let a' = a + n
 Lazy evaluation has many advantages:
 
 * It enables **equational reasoning** even in the presence of partial functions and non-termination
-* It allows functions to be **decomposed** without sacrificing efficiency, for example: `minimum = head . sort` is depending on a sorting algorithm, possibly O(n).  
-John Huges demonstrates αβ pruning from AI as a larger example[^1]
-* It alows for **circular programming** and **infinite data structures**, which allow us to express more things as **pure functions**
+* It allows functions to be **decomposed** without sacrificing efficiency, for example: `minimum = head . sort` is depends on the sorting algorithm, possibly *O(n)*.  
+John Hughes demonstrates αβ pruning from AI as a larger example[^1]
+* It allows for **circular programming** and **infinite data structures**, which allow us to express more things as **pure functions**
 
 ### Infinite Data Structures
 

@@ -40,8 +40,8 @@ lookup      :: Word -> Dict -> Maybe Definition
 
 If we don't have access to the implementation of `Dict`, then we can only access it via the provided operations, which we know preserve our data invariants. Thus, our data invariants cannot be violated if this module is correct.
 
-In general, **abstraction** is the process of ***eliminating detail***  
-The inverse of abstraction is called **refinement**
+In general, **abstraction** is the process of ***eliminating detail***.  
+The inverse of abstraction is called **refinement**.
 
 Abstract data types like the dictionary above are abstract in the sense that their implementation details are hidden, and we no longer have to reason about them on the level of implementation.
 
@@ -69,19 +69,19 @@ checkEmail str | '@' `elem` str = Just (Email str)
 
 Then change the type of `sendEmail` to `sendEmail :: Email -> String -> IO()`
 
-The only way (outside the `EmailADT` module) to create a value of type `Email` is to use `checkEmail`  
-`checkEmail` is an example of what we call a **smart constructor**; a constructor that enforces data invariants
+The only way (outside the `EmailADT` module) to create a value of type `Email` is to use `checkEmail`.  
+`checkEmail` is an example of what we call a **smart constructor**; a constructor that enforces data invariants.
 
 ## Data Refinement
 
-**Refinement** is a relation from an *implementation* to an *abstract model* or an *abstract specification*. A refinement is the opposite of an abstraction (which removes detail).  
-If an implementation ***refines*** a model or specification, it exhibits all of the same behaviour but may have additional behaviour or detail.
+**Refinement** is is the opposite of an abstraction (which removes detail).  
+If an implementation ***refines*** a model or specification, it exhibits all of the same behaviours but may have additional behaviours or details.
 
 In this course, the model and implementation will have an indistinguishable interface with different implementation details
 
 We can demonstrate a **refinement relation** between two data types if we can show that the interfaces are the same and they exhibit the same behaviour. This is a **data refinement**.
 
-We choose which data type will be the *abstract model*, which is the *definition* or ***specification***. The other data type the becomes are *implementation*; i.e. the data type that we will actually use in the final system.  
+We choose which data type will be the *abstract model*, which is the *definition* or ***specification***. The other data type becomes the *implementation*; i.e. the data type that we will actually use in the final system.  
 We must show the implementation is a refinement of the model or specification
 
 ### Reasoning about ADTs
@@ -100,7 +100,7 @@ size       :: Queue -> Int
 
 We could try to come up with properties that relate these functions to each other without reference to their implementation, such as:  
     `dequeue (enequeue x emptyQueue) == emptyQueue`  
-However, these do not capture functional correctness (usually)
+However, these do not capture functional correctness (usually).
 
 ### Models for ADTS
 
@@ -116,7 +116,7 @@ sizeL       = length
 
 This implementation is O(n), which is sub-par.  
 ***However***, it is a simple implementation, and its trivial to see that it is correct. If we make a better queue implementation, it should always give the same results as this simple one.  
-Therefore: this implementation serves as a **functional correctness specification** for our `Queue` type
+Therefore, this implementation serves as a **functional correctness specification** for our `Queue` type. It is our abstract model.
 
 ### Refinement Relations
 
@@ -199,7 +199,7 @@ There is a limit to the amount of abstraction we can do before they become usele
 
 ### Queue Example ctd.
 
-In addition to the already-stated refinement properties, we also have some data invariants to maintain for a value `Q sf r sr`
+In addition to the already-stated refinement properties, we also have some data invariants to maintain for a value `Q f sf r sr`
 
 1. `length f == sf`
 2. `length r == sr`

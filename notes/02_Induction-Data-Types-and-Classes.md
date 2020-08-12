@@ -64,7 +64,7 @@ movePoint :: Point -> Vector -> Point
 movePoint (x,y) (dx,dy) = (x + dx, y + dy)
 ```
 
-But these definitions allow `Points` and `Vectors` to be used interchangeable, increasing the likelihood of errors. i.e we would not receive any errors if we passed a `Vector` as a `Point` and vice versa.
+But these definitions allow `Points` and `Vectors` to be used interchangeably, increasing the likelihood of errors; i.e we would not receive any errors if we passed a `Vector` to a `Point` and vice versa.
 
 We can define out own compound types using the `data` keyword
 
@@ -157,7 +157,7 @@ data PictureObject = Path    [Point]        Colour LineStyle
                    | Cirlce  Point Float    Colour LineStyle FillStyle
                    | Polygon [Point]        Colour LineStyle FillStyle
                    | Ellipse Point Float Float Float
-                             Colour LineStule FillStyle
+                             Colour LineStyle FillStyle
                    deriving (Show, Eq)
 
 type Picture = [PictureObject]
@@ -190,7 +190,7 @@ add (Succ a) b = add a (Succ b)  -- (a + 1) + b == a + (b + 1)
 
 zero = Zero
 one = Succ Zero
-two = add one one
+two = add one one -- Succ (Succ Zero)
 
 -- Nat is recursive as it has the (Succ) constructor which takes a Nat
 -- Nat has the Zero constructor which does not recurse and acts like a base case
@@ -217,14 +217,13 @@ data Contact = C Name ContactDetails
 
 Failure to follow Yaron's advice leads to **partial functions**.
 
-A **partial function** is a function that is not defined for all possible inputs.  
-Examples: `head`, `tail`, `(!!)`, division
+A **partial function** is a function that is not defined for its whole domain (i.e. all possible inputs). E.g. `head`, `tail`, `(!!)`, division.
 
 Partial functions are to be avoided, because they cause your program to crash if undefined cases are encountered.
 
 To eliminate partiality, we must either:
 
-* **enlarge** the codomain, usually with a `Maybe` type
+* **enlarge** the codomain, usually with a `Maybe` type, or
 
     ``` hs
     safeHead :: [a] -> Maybe a
@@ -232,7 +231,7 @@ To eliminate partiality, we must either:
     safeHead []     = Nothing
     ```
 
-* or we must **constrain** the domain to be more specific:
+* we must **constrain** the domain to be more specific:
 
     ``` hs
     safeHead' :: NonEmpty a -> a
@@ -240,10 +239,9 @@ To eliminate partiality, we must either:
 
 ## Type Classes
 
-We've seen functions that work on multiple types (e.g. `compare`, `(==)`, `(+)`, `show`) and their corresponding constraints on type variables (e.g `Ord`, `Eq`, `Num` and `Show`).  
-These constraints are called **type classes**, and can be thought of as a ***set of types*** for which certain operations are implemented.
+We've seen functions that work on multiple types (e.g. `compare`, `(==)`, `(+)`, `show`) and their corresponding constraints on type variables (e.g `Ord`, `Eq`, `Num` and `Show`). These constraints are called **type classes**, and can be thought of as a ***set of types*** for which certain operations are implemented.
 
-Type classes describe a set of behaviours that can be implemented for any type. A function or type class inheritance (i.e `deriving (Show)`) can operate on a type variable constrained by a type class instead of a concrete type. It is similar to an OOP interface
+Type classes describe a set of behaviours that can be implemented for any type. A function or type class inheritance (i.e `deriving (Show)`) can operate on a type variable constrained by a type class instead of a concrete type. It is similar to an OOP interface.
 
 When creating an instance of a type class with ***laws***, you must ensure that the laws are held manually (they cannot be checked by the compiler).  
 When using a type class with ***laws***, you can assume that all laws hold for all instances of the type class.
@@ -280,14 +278,14 @@ class Read a where
 -- Examples:
 read "34" :: Int           -- give 34 as an integer
 read "22" :: Char          -- gives a runtime error
-show (read "34") :: String -- gives a type error since show expects any time
+show (read "34") :: String -- gives a type error
                            --   ghci will convert it to a default value
                            --   but it is often not what we expect
 ```
 
 ### Semigroup
 
-A **semigroup** is a pair of a set S and an operation `• : S → S → S`, where the operation • is **associative**.  
+A **semigroup** is a pair consisting of a set S and an operation `• : S → S → S`, where the operation • is **associative**.  
 Associativity is defined as, for all a, b, c: `(a • (b • c)) = ((a • b) • c)`
 
 Haskell has a type class for semigroups.  
@@ -316,7 +314,7 @@ instance Semigroup Colour where
 
 #### Monoid
 
-A **monoid** is a semigroup (S, •) equipped with a special ***identity element*** `z :: S` such that `x • z = x` and `z • y = y` for all x, y
+A **monoid** is a semigroup (S, •) equipped with a special ***identity element*** `z :: S` such that `x • z = x` and `z • y = y` for all *x*, *y*.
 
 ``` hs
 class (Semigroup a) => Monoid a where
@@ -340,9 +338,8 @@ Haskell doesn't use any of these, because there can only be **one** instance per
 
 ##### Newtypes
 
-A common technique is to define a ***separate type*** that is represented identically to the original type, but can have its own, different type class instances.  
-`newtype` allows you to encapsulate an existing type to add constraints or properties without adding runtime overload.  
-In Haskell, this is done with the `newtype` keyword
+A common technique is to define a ***separate type*** that is represented identically to the original type, but can have its own different type class instances. `newtype` allows you to encapsulate an existing type to add constraints or properties without adding runtime overload.  
+In Haskell, this is done with the `newtype` keyword.
 
 A `newtype` declaration is much like a `data` declaration except that there can be only **one constructor** and it must take exactly **one argument**:
 
@@ -371,11 +368,11 @@ milesToKilometers :: Miles -> Kilometers
 milesToKilometers (Miles miles) = Kilometers % miles * 1.60934
 ```
 
-***In general, `newtypes` are a great way to prevent mistakes***. Use them frequently
+***In general, `newtypes` are a great way to prevent mistakes***. Use them frequently.
 
 ### Ord
 
-`Ord` allows us to compare two values of a type for **partial** or **total inequality**
+`Ord` allows us to compare two values of a type for **partial** or **total inequality**.
 
 ``` hs
 class Order a where
@@ -394,7 +391,7 @@ Without the fourth (totality), they are called **partial orders**. An example of
 
 ### Eq
 
-`Eq` allows us to compare two values of a type for an **equivalence** or **equality**;
+`Eq` allows us to compare two values of a type for an **equivalence** or **equality**.
 
 ``` hs
 class Eq a where
@@ -406,7 +403,7 @@ Instances should satisfy the following laws:
 1. **Reflexivity**: `x == x`
 2. **Transitivity**: If `x == y` and `y == z`, then `x == z`
 3. **Symmetry**: If `x == y` then `y == x`
-4. **Negation** (equality): If `x =/= y` then `¬(x = y)`
+4. **Negation** (equality): If `x /= y` then `¬(x == y)`
 5. **Substitutivity** (equality): If `x == y` then `f x == f y` for all functions `f`
 
 Relations that satisfy **laws 1-3** are called **equivalence relations**  
@@ -414,7 +411,7 @@ Relations that satisfy **laws 1-5** are called **equality relations**
 
 ## Functors
 
-Haskell is actually comprised of ***two languages***  
+Haskell is actually comprised of ***two languages***:  
 The **value-level/runtime** language, consisting of expressions such as `if`, `let`, `3` etc.  
 The **type-level** language, consisting of types `Int`, `Bool`, synonyms like `String`, and type ***constructors*** like `Maybe`, `(->)`, `[  ]` etc.
 
@@ -423,9 +420,9 @@ This type level language itself has a type system!
 Just as values and functions in the *runtime language* has types, types in the *type language* of Haskell have **kinds**.  
 The most basic kind is written as `*`.
 
-Seeing as `Maybe` is parameterised by one argument, `Maybe` has kind `* -> *`  
-`Maybe` is a type constructor that takes a type and produces a type that may or may not hold a value  
-`Maybe Int` is a concrete type that may or may not hold an `Int`
+Seeing as `Maybe` is parameterised by one argument, `Maybe` has kind `* -> *`.  
+`Maybe` is a type constructor that takes a type and produces a type that may or may not hold a value.  
+`Maybe Int` is a concrete type that may or may not hold an `Int`.
 
 ### Lists
 
@@ -479,7 +476,7 @@ f = maybeMap toString . tryNumber
 
 All these functions (i.e `maybeMap`, `map`) are in the interface of a single type class called `Functor`.
 
-A **`Functor`** is a type class that defines a signature for a method over a *"wrapped"* value (e.g. `Maybe`, lists), where a *"wrapped"* value is a type that takes types like `Int`, `Bool`, `Char` etc. as a parameter. For example, `Maybe` takes a type parameter (`Int`, `Bool`, `Char` etc.) to become `Maybe Int`, `Maybe Bool`, `Maybe Char`; likewise lists `[ ]` takes a type parameter to become `[Int]`, `[Bool]`, `[Char]`.  
+A **`Functor`** is a type class that defines a signature for a method over a *"wrapped"* value (e.g. `Maybe`, lists), where a *"wrapped"* value is a type that takes types (e.g. `Int`, `Bool`, `Char` etc.) as a parameter. For example, `Maybe` takes a type parameter (`Int`, `Bool`, `Char` etc.) to become `Maybe Int`, `Maybe Bool`, `Maybe Char`; likewise lists `[ ]` takes a type parameter to become `[Int]`, `[Bool]`, `[Char]`.  
 A functor essentially applies a function to a *"wrapped"* value and returns a *"wrapped"* value.
 
 ``` hs

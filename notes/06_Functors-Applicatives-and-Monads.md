@@ -223,8 +223,8 @@ pure f <*> pure x = pure (f x)
 
 -- 3. Interchange
 u <*> pure y = pure ($ y) <*> u
--- if you have a wrapped function u and you apply it to a pure arguments,
--- its like applying the application operator with the pure argument to the wrapped function
+-- if you have a wrapped function, u, and you apply it to a pure argument,
+-- it's like applying the application operator with the pure argument to the wrapped function
 
 -- 4. Composition
 pure (.) <*> u <*> v <*> w = u <*> (v <*> w)
@@ -351,7 +351,8 @@ applyListC [] args = []
 
 **Functors** are types for containers where we can `map` pure functions on their contents.  
 **Applicative Functors** are types where we can combine *n* containers with a *n*-ary function.  
-The last and most commonly-used higher-kinded abstraction in Haskell programming is the `Monad`. **Monads** are type `m`, where we can ***sequentially compose*** functions of the form `a -> m -> b`
+The last and most commonly-used higher-kinded abstraction in Haskell programming is the `Monad`.  
+**Monads** are type `m`, where we can ***sequentially compose*** functions of the form `a -> m b`
 
 ``` hs
 class Applicative m => Monad m where
@@ -409,7 +410,7 @@ This sort of structure is called a **category** in mathematics.
 All `Monad` instances give rise to an `Applicative` instance, because we can define `<*>` in terms of `>>=`.
 
 ``` hs
-mf <*> mx = mf >>= \f -> mx >>= \x -> pure (f x)
+mf <*> mx == mf >>= \f -> mx >>= \x -> pure (f x)
 ```
 
 This implementation is already provided for `Monads` as the `ap` function in `Control.Monad`

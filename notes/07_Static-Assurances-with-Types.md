@@ -8,7 +8,7 @@ Static means of assurance analyses a program ***without running it***
 
 ## Static vs. Dynamic
 
-Static checks can be **exhaustive**
+Static checks can be **exhaustive**.
 
 > An exhaustive check is a check that is able to analyse all possible executions of a program.
 
@@ -24,7 +24,7 @@ Most static and all dynamic methods of assurance are **not** integrated into the
 * You can change your program to diverge from your model checker model
 * Your proofs can diverge from your implementation
 
-Because type are integrated into the compiler, they cannot diverge from the source code. This means that type signatures are a kind of *machine-checked documentation* for your code.
+Because types are integrated into the compiler, they cannot diverge from the source code. This means that type signatures are a kind of *machine-checked documentation* for your code.
 
 Types are the most widely used kind of formal verification in programming today.
 
@@ -42,7 +42,7 @@ We will be looking a techniques to encode various correctness conditions inside 
 Let's examine each one of the following use cases:
 
 * We can use this parameter to track what **data invariants** have been established about a value
-* We can use this parameter to track information about the representation (e.g. units of measure
+* We can use this parameter to track information about the representation (e.g. units of measure)
 * We can use this parameter to enforce an **ordering** of operations performed on these values (**type state**)
 
 ### Validation
@@ -90,7 +90,7 @@ area :: Value m -> Value m -> Value (Square m)
 area (U x) (U y) = U (x * y)
 ```
 
-Note the arguments to `area` must have the same units
+Note the arguments to `area` must have the same units.
 
 ### Type State
 
@@ -124,13 +124,13 @@ send2' s x y = do _ <- send s x
                   pure s'
 ```
 
-**Linear type** systems can solve this, but not in Haskell (yet)
+**Linear type** systems can solve this, but not in Haskell (yet).
 
 ### Datatype Promotion
 
 Defining empty data types for our tags is **untyped**. We can have `StudentID UG`, but also `StudentID String`.
 
-Recall that Haskell types themselves have types, called kinds. We can make our tag types more precise than `*` using the `DataKings` language extension, which lets us use data types as kinds:
+Recall that Haskell types themselves have types, called kinds. We can make our tag types more precise than `*` using the `DataKinds` language extension, which lets us use data types as kinds:
 
 ``` hs
 {-# LANGUAGE DataKinds, KindSignatures #-}
@@ -208,7 +208,7 @@ if' :: Expr Bool -> Expr a -> Expr a -> Expr a
 if' = If
 ```
 
-This makes invalid expressions into type errors:
+This makes invalid expressions into type errors (which is what we want):
 
 ``` hs
 -- couldn't match Int and Bool
@@ -324,7 +324,7 @@ The benefits of this extra static checking are obvious, however:
 * Type-level encodings can make types more verbose and programs harder to understand
 * Sometimes excessively detailed types can make type-checking very slow, hindering productivity
 
-> **Pragmatism**
+> **Pragmatism**  
 > We should use type-based encodings only when the ***assurance advantages outweigh the clarity disadvantges***  
 > The typical use case for these richly-typed structures is to eliminate **partial fucntions** from our code base  
 > If we never use partial list functions, length-indexed vectors are not particularly useful

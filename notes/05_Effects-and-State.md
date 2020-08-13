@@ -35,13 +35,13 @@ Examples:
     throw new Exception();
     ```
 
-An **external effect** is an effect that is ***observable*** outside the function.  
+An **external effect** is an effect that is ***observable outside*** the function.  
 The observer doesn't necessarily have to be a user; it can be other functions.  
 Examples: console, file and network IO; termination and non-termination; non-local control flow; modifying global variables etc.  
-**Internal effects** are not observable from outside. They are contained within the function that is doing them  
+**Internal effects** are not observable from outside. They are contained within the function that is doing them.  
 Examples: modifying local variables
 
-Memory effects can be internal or external depending on the scope of memory being accessed. Global memory accesses are *external*
+Memory effects can be internal or external depending on the scope of memory being accessed. Global memory accesses are *external*.
 
 ### Purity
 
@@ -56,11 +56,11 @@ Consequences:
 * no implicit notion of time or order of execution
 
 Haskell functions are technically ***not pure***.  
-They can loop infinitely, throw exceptions (partial functions), force evaluation of unevaluated expressions
+They can loop infinitely, throw exceptions (partial functions), force evaluation of unevaluated expressions.
 
 Purity only applies to a particular level of abstraction. Even ignoring the above, assembly instructions produced by GHC aren't really pure.
 
-Despite the impurity of Haskell functions, we can often reason as though they are pure. Hence we call Haskell a *purely funcitonal* language.
+Despite the impurity of Haskell functions, we can often reason as though they are pure. Hence, we call Haskell a *purely funcitonal* language.
 
 ### The Danger of Implicit Side Effects
 
@@ -69,20 +69,20 @@ Despite the impurity of Haskell functions, we can often reason as though they ar
 * They introduce **non-local** dependencies which is bad for software design, increasing *coupling*
 * They interfere badly with strong typing, for example mutable arrays in Java, or reference types in ML
 
-We can't, in general, *reason equationally* about effectful programs
+We can't, in general, *reason equationally* about effectful programs.
 
 ### Programming Pure Functions
 
 It is possible to program pure functions in Haskell.
 
-Typically, a computation involving some state of type `s` and returning a result of type `a` can be expressed as a function: `s -> (s, a)`  
-Rather than *change* the state, we return a **new copy** of the state along with a result
+Typically, a computation involving some state of type `s` and returning a result of type `a` can be expressed as a function: `s -> (s, a)`.  
+Rather than *change* the state, we return a **new copy** of the state along with a result.
 
 All that copying might seem expensive, but by using tree data structures, we can usually reduce the cost to an O(log n) overhead.
 
 ## State
 
-Example: labelling notes in a tree in ascending number in infix order
+Example: label the nodes in a tree with ascending numbers in infix order
 
 ``` hs
 data Tree a = Branch a (Tree a) (Tree a) | Leaf
@@ -97,10 +97,10 @@ Implementing tree labelling:
 ``` hs
 -- label infix order stating at 1
 label :: Tree () -> Tree Int
-label t = snd (go t 1)         -- get second element of go
+label t = snd (go t 1)                    -- get second element of go
 where
-  go :: Tree () > Int -> (Int, Tree Int)
-  go Leaf c = (c, Leaf)       -- set Leaf label to count given
+  go :: Tree () -> Int -> (Int, Tree Int) -- returns tuple of the next count and labelled tree
+  go Leaf c = (c, Leaf)                   -- Leaf does not store a count, so just return the count
   go (Branch () l r) c = let
     (c', l') = go l c
     v = c'
@@ -139,7 +139,7 @@ Ways to join stateful procedures together:
     (>>) :: State s a -> State s b -> State s b
     ```
 
-* Blind:
+* Bind:
 
     ``` hs
     -- The second step can depend on the first step with bind
@@ -206,8 +206,8 @@ In the Haskell standard library `mtl`, the `State` type is actually implemented 
 ## IO
 
 Sometimes we need side effects.  
-We need to perform I/O, to communicate with the user or hardware
-We might need effects for maximum efficiency (but usually internal effects are sufficient)
+We need to perform I/O, to communicate with the user or hardware.  
+We might need effects for maximum efficiency (but usually internal effects are sufficient).
 
 Haskell's approach is to be ***pure by default, effectful when necessary***
 
@@ -246,7 +246,7 @@ The only function that gets an `a` from an `IO a` is `>>=`:
 
 But it returns and `IO` procedure as well.
 
-> The moment you use an `IO` procedure in a function, `IO` shows us in the types, and you can't get rid of it.
+> The moment you use an `IO` procedure in a function, `IO` shows up in the types, and you can't get rid of it.
 
 If a function makes use of `IO` effects directly or indirectly, it will have `IO` in its type.
 
@@ -257,7 +257,7 @@ main :: IO ()
 ```
 
 The overall structure of an IO program in Haskell is:  
-We have an IO shell which includes a main function and almost all the logic for the program is in pure functions inside it. Some times we have State monads, that encapsulate the internal state.
+We have an IO shell which includes a main function and almost all the logic for the program is in pure functions inside it. Sometimes we have State monads, that encapsulate the internal state.
 
 ![haskell design strategy](../imgs/05-14_haskell-design-strategy.png)
 

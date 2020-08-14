@@ -7,11 +7,12 @@
 We can specify a logical system as a **deductive system** by providing a set of *rules* and *axioms* that describe how to prove various connectives
 
 Each connective typically has ***introduction*** and ***elimination*** rules.  
-For example, to prove an implication A -> B holds, we must show that B holds assuming A. this introduction rule is written as:
+For example, to prove an implication `A -> B` holds, we must show that `B` holds assuming `A`.  
+This introduction rule is written as:
 
 ![implication introduction](../imgs/09-3_implication-introduction.png)
 
-Implication also has an elimination rule, that is also called **modus ponens**:
+Implication also has an elimination rule, that is also called **modus ponens** - *"mode that by affirming affirms"*:
 
 ![implication elimination](../imgs/09-4_implication-elimination.png)
 
@@ -35,7 +36,7 @@ The true literal, written ⊤, has only an introduction:
 
 ![true introduction](../imgs/09-5_true-introduction.png)
 
-And false, written ⊥, has just elimination (**ex falso quodlibet**):
+And false, written ⊥, has just elimination (**ex falso quodlibet** - *"from falsehood, anything [is possible]"*):
 
 ![false elimination](../imgs/09-5_false-elimination.png)
 
@@ -58,12 +59,14 @@ Typically we define **negation** as ¬A ≡ (A → ⊥); not a is equivalent to 
 
 ### Constructive Logic
 
-The logic we have expressed so far does **not** admit the *law of the excluded middle*:  
-**P ∨ ¬P**  
-Or the equivalent double negation elimination:  
+The logic we have expressed so far does **not** admit classical logic's:
+
+* ***law of the excluded middle***:  
+**P ∨ ¬P**
+* or, the equivalent double negation elimination:  
 **(¬¬P) → P**
 
-This is because it is a **constructive** logic that does not allow us to do proof by contradiction.
+This is because it is a **constructive** (or **intuitionistic**) logic that does not allow us to do proof by contradiction.
 
 ## Typed Lambda Calculus
 
@@ -295,7 +298,7 @@ Laws for `Either` and `Void`:
 * Identity: `Either Void A ≃ A`
 * Commutativity: `Either A B ≃ Either B A`
 
-Laws for tuples and 1:
+Laws for tuples and `()`:
 
 * Associativity: `((A, B), C) ≃ (A, (B, C))`
 * Identity: `((), A) ≃ A`
@@ -319,7 +322,7 @@ We can consider two things to be equivalent if *the number of possible value in 
 
 ### Isomorphism
 
-To type `A` and `B` are **isomorphic**, written `A ≃ B`, if there exists a **bijection** between them. This means that for each value in A, we can find a unique value in B and vice versa.
+Two types `A` and `B` are **isomorphic**, written `A ≃ B`, if there exists a **bijection** between them. This means that for each value in A, we can find a unique value in B and vice versa.
 
 We can use this reasoning to simplify type definitions. For example:
 
@@ -348,7 +351,7 @@ First-order logic quantifiers range over a set of ***individuals*** or values, f
 
 These quantifiers range over **propositions** (types themselves). It is analogous to **second-order logic**, not first-order:
 
-∀A. ∀B. A ∧ B → B ∧ A
+∀A. ∀B. A ∧ B → B ∧ A  
 ∀A. ∀B. (A, B) → (B, A)
 
 The first-order quantifier has a type-theoretic analogue too (type indices), but this is not nearly as common as polymorphism
@@ -363,7 +366,7 @@ Example:
 
 ``` txt
 least general                    most general
-Int -> Int ⊒ ∀z. z → z ⊒ ∀x y . x → y ⊒ ∀a. a
+Int -> Int ⊒ ∀z. z → z ⊒ ∀x ∀y. x → y ⊒ ∀a. a
 ```
 
 Polymorphic type signatures constrain implementations.  
@@ -372,7 +375,7 @@ The ***more*** general our type gets, the ***less*** implementations we have.
 ### Parametricity
 
 The principle of **parametricity** states that the result of polymorphic functions cannot depend on values of an abstracted type.  
-More formally, suppose I have a polymorphic function *g* that is polymorphic on type *a*. If we run any arbitrary function *f :: a-> a* on all the *a* values in the input of *g*, that will give the same result as running *g* first, then *f* on all the *a* values of the output.
+More formally, suppose I have a polymorphic function *g* that is polymorphic on type *a*. If we run any arbitrary function *f :: a → a* on all the *a* values in the input of *g*, it will give the same result as running *g* first, then *f* on all the *a* values of the output.
 
 Examples: find the parametricity theorems for the following functions
 
@@ -388,7 +391,7 @@ The parametricity theorem we get is, for all *f*:
 For any *f*:
 
     ``` hs
-    f (head ls) = head . (map f ls)
+    f (head ls) = head (map f ls)
     ```
 
 * `(++) :: ∀a. [a] → [a] → [a]`  

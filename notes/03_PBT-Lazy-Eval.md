@@ -152,11 +152,11 @@ How good are your tests?
 
 Types of coverage:
 
-* **Entry/Exit Coverage** - all function *calls* executed?
-* **Function Coverage** - all *functions* executed?
-* **Statement/Expression Coverage** - all *statements/expressions* executed?
-* **Branch/Decision Coverage** - all *conditional branches* executed?
-* **Path Coverage** - all possible *routes* executed?
+* **Entry/Exit Coverage** - All function *calls* executed? Has every defined function been tested?
+* **Function Coverage** - All *functions* executed? If a function is called in several places, are all those places tested?
+* **Statement/Expression Coverage** - All *statements/expressions* executed? Do we execute each component of code?
+* **Branch/Decision Coverage** - All *conditional branches* executed?
+* **Path Coverage** - All possible *routes* executed? Have exhaustively analysed every possible behaviour of the program. Extremely difficult to compute.
 
 **Haskell Program Coverage** (or `hpc`) is a GHC-bundled tool to measure function, branch and expression coverage.
 

@@ -6,7 +6,7 @@
 
 We can specify a logical system as a **deductive system** by providing a set of *rules* and *axioms* that describe how to prove various connectives
 
-Each connective typically has ***introduction*** and ***elimination*** rules.  
+Each connective typically has ***introduction*** and ***elimination*** rules. Introduction rules tell us how to prove a particular connective, while elimination rules tells us what we can do given we know the connective holds.  
 For example, to prove an implication `A -> B` holds, we must show that `B` holds assuming `A`.  
 This introduction rule is written as:
 
@@ -111,7 +111,7 @@ We won't have type declarations, named fields or anything like that. More than t
 
 We can ***construct*** a product type the same as Haskell tuples:
 
-[product construct](../imgs/09-12_product-construct.png)
+![product construct](../imgs/09-12_product-construct.png)
 
 The only way to extract each component of the product is to use the `fst` and `snd` eliminators:
 
